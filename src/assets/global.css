@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#event-sequence {
+    /*border-right: 2px solid #E4E4E4;*/
+}
+
+.el-anchor__list {
+    border-left: 2px solid #E4E4E4;
+}
+
+svg {
+    width: 100%;
+    height: auto;
+    border: none;
+}
+
+#app {
+    display: flex;
+    width: 100%;
+}
+
+.toggle-button {
+    position: fixed;
+    top: 10px;
+    left: 200px; /* 让按钮紧跟导航栏右侧边缘线移动 */
+    z-index: 1000;
+    cursor: pointer;
+    background-color: #f6f6f6;
+    color: black;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    transition: left 0.3s ease;
+}
+
+.toggle-button span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.el-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: auto !important;
+}
+
+.el-button, el-switch {
+    font-size: 13px;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    height: 30px;
+}
+
+#similar-list {
+    display: flex;
+    flex-direction: column;
+    /*align-items: center;*/
+    margin-left: 25px;
+    margin-right: 25px;
+    height: 100%;
+    font-size: 13px;
+    width: 100%;
+    justify-content: left;
+}
+
+:root {
+    --text-color: #606266;
+    --bg-color: #ffffff;
+    --scrollbar-color: #CDCDCD;
+    --scrollbar-hover-color: #C7C9CC;
+    --month-header-color: #F5F7FA;
+}
+
+.text-style, .similar-sequences, .tree-node-text, .year-label  {
+    fill: var(--text-color);
+    color: var(--text-color);
+}
+
+.el-container, .el-anchor__list {
+    background-color: var(--bg-color);
+}
+
+.el-scrollbar {
+    --el-scrollbar-bg-color: var(--scrollbar-color) !important;
+    --el-scrollbar-hover-bg-color: var(--scrollbar-hover-color) !important;
+}
+
+.month-header {
+   background-color: var(--month-header-color);
+}
+

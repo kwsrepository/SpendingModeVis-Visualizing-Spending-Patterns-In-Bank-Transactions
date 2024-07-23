@@ -1,30 +1,81 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <el-container>
+    <el-aside :width="sidebarVisible ? '200px' : '0px'">
+        <div class="toggle-button" @click="toggleSidebar">
+          <span v-html="sidebarVisible ? '&lt;' : '&gt;'"></span>
+        </div>
+
+        <div :class="['sidebar', { hidden: !sidebarVisible }]">
+          <router-link to="/page1" class="tab-link" active-class="active">Recreate Fig 1</router-link>
+          <router-link to="/page2" class="tab-link" active-class="active">Event Sequence 1</router-link>
+          <router-link to="/page3" class="tab-link" active-class="active">(color wheel)</router-link>
+          <router-link to="/page4" class="tab-link" active-class="active">Page 4</router-link>
+        </div>
+    </el-aside>
+    <el-container>
+      <router-view></router-view>
+    </el-container>
+
+  </el-container>
 </template>
 
+<script>
+import { ElContainer, ElAside } from 'element-plus'
+// , ElHeader, ElMain
+
+export default {
+  components: {
+    ElContainer,
+    ElAside,
+    // ElHeader,
+    // ElMain,
+  },
+  data() {
+    return {
+      sidebarVisible: true
+    };
+  },
+  methods: {
+    toggleSidebar() {
+      this.sidebarVisible = !this.sidebarVisible;
+    }
+  }
+};
+</script>
+
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+@import '@/assets/global.css';
+
+.sidebar {
+  width: 200px;
+  background-color: #333;
+  overflow: auto;
+  transition: transform 0.3s ease;
 }
 
-nav {
-  padding: 30px;
+.sidebar a {
+  display: block;
+  color: white;
+  padding: 16px;
+  text-decoration: none;
 }
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
+.sidebar a:hover {
+  background-color: #ddd;
+  color: black;
 }
 
-nav a.router-link-exact-active {
-  color: #42b983;
+.sidebar a.active {
+  background-color: grey;
+  color: white;
 }
+
+.sidebar.hidden {
+  transform: translateX(-200px);
+}
+
+.sidebar.hidden ~ .toggle-button {
+  left: 0; /* 导航栏隐藏时，按钮保持在视野内 */
+}
+
 </style>

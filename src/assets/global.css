@@ -52,7 +52,7 @@ svg {
     height: auto !important;
 }
 
-.el-button, el-switch {
+.el-button, .el-switch, .el-select {
     font-size: 13px;
     width: 100px;
     display: flex;

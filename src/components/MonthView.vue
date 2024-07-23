@@ -103,10 +103,10 @@ export default {
 }
 
 .calendar-container {
-  margin: 10px;
+  margin: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 10px;
+  padding: 5px;
   width: 320px;
 }
 
@@ -125,18 +125,22 @@ export default {
 .day-name {
   font-weight: bold;
   text-align: center;
-  padding: 5px 0;
+  width: 30px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .day {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  border: 1px solid #eee;
+  border: none;
   position: relative;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .day-content {

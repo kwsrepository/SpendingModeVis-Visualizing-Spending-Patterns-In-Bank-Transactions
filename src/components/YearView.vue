@@ -93,7 +93,7 @@ export default {
 .year-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: none;
   width: 100%;
 }
 
@@ -101,6 +101,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .month-header {

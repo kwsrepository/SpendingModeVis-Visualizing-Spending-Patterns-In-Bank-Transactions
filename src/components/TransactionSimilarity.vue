@@ -54,9 +54,13 @@ export default {
     dailySequences: {
       type: Object,
       required: true
+    },
+    algorithm: {
+      type: String,
+      required: true
     }
   },
-  setup(props, { emit }) { // <-- 确保包含 emit
+  setup(props, { emit }) {
     const currentDate = ref(new Date());
     const selectedDate = ref(new Date());
     const topSimilarSequences = ref([]);
@@ -128,43 +132,38 @@ export default {
       });
     };
 
-    watch(() => props.details, (newDetails) => {
-      if (newDetails) {
-        const dateMatch = newDetails.match(/Date: (\d{4}-\d{2}-\d{2})/);
+    const updateSimilarSequences = () => {
+      if (props.details) {
+        const dateMatch = props.details.match(/Date: (\d{4}-\d{2}-\d{2})/);
         if (dateMatch) {
-          const newDate = new Date(dateMatch[1]);
-          currentDate.value = newDate;
-          selectedDate.value = newDate;
-
           const selectedSequence = props.dailySequences[dateMatch[1]];
           if (selectedSequence) {
-            console.log("Selected Sequence:", selectedSequence);
-
             const allSequences = Object.keys(props.dailySequences).map(date => ({
               date,
               sequence: props.dailySequences[date]
             }));
-
-            topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences);
-            // console.log("Top 10 Similar Sequences:", topSimilarSequences.value);
+            topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
             similarDates.value = topSimilarSequences.value.map(seq => seq.date);
             highlightDates();
-
-            // 发射事件传递topSimilarSequences
             emit('update-top-similar-sequences', topSimilarSequences.value);
-          } else {
-            console.log("No sequence found for the selected date.");
           }
         }
       }
-    });
+    };
 
-    watch(topSimilarSequences, (newTopSimilarSequences) => {
-      const dates = newTopSimilarSequences.map(seq => seq.date);
-      console.log("Similar Dates:", dates);
-      similarDates.value = dates;
-      highlightDates();
-    });
+    watch(() => props.details, updateSimilarSequences);
+    watch(() => props.algorithm, updateSimilarSequences);
+
+    // watch(() => props.algorithm, (newAlgorithm) => {
+    //   console.log("Selected Algorithm:", newAlgorithm);
+    // });
+
+    // watch(topSimilarSequences, (newTopSimilarSequences) => {
+    //   const dates = newTopSimilarSequences.map(seq => seq.date);
+    //   // console.log("Similar Dates:", dates);
+    //   similarDates.value = dates;
+    //   highlightDates();
+    // });
 
     const close = () => {
       emit('close');
@@ -183,14 +182,13 @@ export default {
 </script>
 
 
-
 <style scoped>
 .transaction-detail {
   position: fixed;
   right: 0;
   top: 0;
   height: 100%;
-  width: 800px;
+  width: 750px;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   border: 2px solid #E4E4E4;
   border-radius: 8px;

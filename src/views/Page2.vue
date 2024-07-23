@@ -66,6 +66,14 @@
               <span class="custom-inactive-action">☀️</span>
             </template>
           </el-switch>
+          <div id="select_box">
+            <el-select v-model="selectedAlgorithm" placeholder="Select Algorithm">
+              <el-option label="Levenshtein" value="levenshtein"></el-option>
+              <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
+              <el-option label="Hamming" value="hamming"></el-option>
+              <el-option label="Jaro-Winkler" value="jaro-winkler"></el-option>
+            </el-select>
+          </div>
         </div>
       </div>
       <div id="similar-list">
@@ -76,6 +84,7 @@
       :visible="detailVisible"
       :details="selectedDetails"
       :dailySequences="dailySequences"
+      :algorithm="selectedAlgorithm"
       @close="closeDetail"
       @update-top-similar-sequences="handleUpdateTopSimilarSequences"
     ></transaction-similarity>
@@ -88,9 +97,10 @@ import { EventSequenceChart } from '@/visualizations/eventSequence';
 import { loadData } from '@/services/DataService';
 import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
+import { findTopSimilarSequences } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
 import '@/assets/global.css';
-import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol } from 'element-plus';
+import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption } from 'element-plus';
 
 export default {
   name: 'Page2',
@@ -106,10 +116,13 @@ export default {
     ElAnchor,
     ElAnchorLink,
     ElCol,
+    ElSelect,
+    ElOption,
   },
   setup() {
     const showAllDates = ref(false);
     const isDarkMode = ref(false);
+    const selectedAlgorithm = ref('levenshtein');
     let jsonData = ref([]);
     let worksheet = ref(null);
     const legendData = ref([
@@ -147,6 +160,17 @@ export default {
       );
 
       populateLegendData();
+    };
+
+    const updateTopSimilarSequences = () => {
+      const selectedSequence = dailySequences.value[selectedDetails.value];
+      if (selectedSequence) {
+        const allSequences = Object.keys(dailySequences.value).map(date => ({
+          date,
+          sequence: dailySequences.value[date]
+        }));
+        topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, selectedAlgorithm.value);
+      }
     };
 
     const handleUpdateTopSimilarSequences = (newTopSimilarSequences) => {
@@ -232,6 +256,12 @@ export default {
       });
     });
 
+    watch(selectedAlgorithm, () => {
+      if (detailVisible.value) {
+        updateTopSimilarSequences();
+      }
+    });
+
     watch(isDarkMode, (newVal) => {
       const root = document.documentElement;
       if (newVal) { //黑夜模式
@@ -276,10 +306,12 @@ export default {
         }
       }
     };
-console.log("dailySequences1:", dailySequences)
+
     return {
       showAllDates,
       isDarkMode,
+      selectedAlgorithm,
+      updateTopSimilarSequences,
       selectAll,
       clearAll,
       legendData,
@@ -297,7 +329,7 @@ console.log("dailySequences1:", dailySequences)
       topSimilarSequences,
       yearPositions,
       containerRef,
-      handleYearClick
+      handleYearClick,
     };
   }
 };
@@ -359,6 +391,10 @@ console.log("dailySequences1:", dailySequences)
   height: 100% !important; /* 强制设置开关核心的高度 */
   width: 100% !important; /* 强制设置开关核心的宽度 */
   border-radius: 20px;
+}
+
+#select_box {
+  margin-top: 10px;
 }
 </style>
 

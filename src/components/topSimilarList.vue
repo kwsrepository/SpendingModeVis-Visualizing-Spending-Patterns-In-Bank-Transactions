@@ -40,11 +40,13 @@ export default {
 .similar-sequences {
   /*margin-top: 20px;*/
   justify-content: left;
+  margin-bottom: auto;
+  margin-top: auto;
 }
 
 .similar-sequences h3 {
   margin-bottom: 3px;
-  /*text-align: center;*/
+  margin-top: 8px;
 }
 
 .similar-sequences ul {

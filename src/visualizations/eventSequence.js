@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { colorMap } from '@/services/colorMapping';
-import { categoryMapping, subCategoryMapping } from '@/services/StringMapping';
+import { subCategoryMapping } from '@/services/StringMapping';
 
 export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set()) {
   //console.log("EventSequenceChart data:", data);
@@ -40,13 +40,11 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       }
     }
 
-    const category = d["Category"] ? d["Category"].trim() : 'Null';
     const subCategory = d["subCategory"] ? d["subCategory"].trim() : 'Null';
     const transactionNumber = d["Transaction Number"] ? d["Transaction Number"] : 0;
 
     return {
       date: formattedDate,
-      category: category,
       subCategory: subCategory,
       transactionNumber: transactionNumber
     };
@@ -125,7 +123,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       index++; // 增加 index 以确保年份文本占据整行
     }
 
-    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).substring(0, 3);
+    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).substring(0, 2);
 
     const g = svg.append("g")
       .attr("transform", `translate(0, ${index * dayHeight})`);
@@ -135,12 +133,14 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
       transactions.sort((b, a) => a.transactionNumber - b.transactionNumber);
 
-      // 将每个交易的类别拼接成字符串
+      // 将每个交易的子类别拼接成字符串
       let sequence = transactions.map(t => {
-        const categoryCode = categoryMapping[t.category] || 'X';
         const subCategoryCode = subCategoryMapping[t.subCategory] || '0';
-        return `${categoryCode}${subCategoryCode}`;
+        return `${subCategoryCode}`;
       }).join("");
+
+      // console.log(`Date: ${date}, Sequence: ${sequence}`);
+
       dailySequences[date] = sequence;
 
       g.selectAll("rect")

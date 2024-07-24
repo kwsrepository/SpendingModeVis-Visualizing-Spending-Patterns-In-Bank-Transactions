@@ -146,17 +146,23 @@ function calculateSimilarity(sequence1, sequence2, algorithm) {
     throw new Error(`Unknown algorithm: ${algorithm}`);
   }
 
-  const maxLength = Math.max(sequence1.length, sequence2.length);
-  return (1 - distance / maxLength) * 100;
+  // const maxLength = Math.max(sequence1.length, sequence2.length);
+  // return (1 - distance / maxLength) * 100;
+  const length = sequence1.length;
+  // console.log('original sequence length:', length);
+  // console.log('original sequence:', sequence1);
+  return (1-distance/length)*100;
 }
 
 // 找出与指定序列最相似的十个序列
 export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 10) {
-  const similarities = allSequences.map(seq => ({
-    date: seq.date,
-    sequence: seq.sequence,
-    similarity: calculateSimilarity(targetSequence, seq.sequence, algorithm)
-  }));
+  const similarities = allSequences
+    .filter(seq => seq.sequence !== targetSequence) // 过滤掉自身序列
+    .map(seq => ({
+      date: seq.date,
+      sequence: seq.sequence,
+      similarity: calculateSimilarity(targetSequence, seq.sequence, algorithm)
+    }));
 
   similarities.sort((a, b) => b.similarity - a.similarity);
 

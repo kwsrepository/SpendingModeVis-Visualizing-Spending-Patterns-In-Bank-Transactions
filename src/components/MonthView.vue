@@ -1,9 +1,15 @@
 <template>
   <div class="month-view">
+    <el-switch
+      v-model="showOnlyHighlightedMonths"
+      active-text="Show Only Highlighted Months"
+      inactive-text="Show All Months"
+      class="custom-switch">
+    </el-switch>
     <div v-for="year in years" :key="year" class="year-section">
       <h2>{{ year }}</h2>
       <div class="month-calendars">
-        <div v-for="month in months" :key="month.index" class="calendar-container">
+        <div v-for="month in filteredMonths(year)" :key="month.index" class="calendar-container">
           <div class="calendar-header">{{ month.name }}</div>
           <div class="days-grid">
             <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
@@ -22,9 +28,15 @@
   </div>
 </template>
 
+
 <script>
+import { ElSwitch } from 'element-plus';
+
 export default {
   name: 'MonthView',
+  components: {
+    ElSwitch,
+  },
   props: {
     highlightDates: {
       type: Array,
@@ -38,6 +50,7 @@ export default {
   },
   data() {
     return {
+      showOnlyHighlightedMonths: false,
       years: Array.from({ length: 8 }, (_, i) => 2015 + i),
       months: [
         { name: 'January', index: 0 },
@@ -74,10 +87,20 @@ export default {
     getSimilarity(date) {
       const seq = this.topSimilarSequences.find(seq => seq.date === date);
       return seq ? seq.similarity.toFixed(2) : '';
+    },
+    isMonthHighlighted(year, monthIndex) {
+      const daysInMonth = this.getDaysInMonth(year, monthIndex);
+      return daysInMonth.some(day => day.date && this.highlightDates.includes(day.date));
+    },
+    filteredMonths(year) {
+      return this.showOnlyHighlightedMonths
+        ? this.months.filter(month => this.isMonthHighlighted(year, month.index))
+        : this.months;
     }
   }
 };
 </script>
+
 
 <style scoped>
 .month-view {
@@ -163,4 +186,10 @@ export default {
   bottom: 5px;
   text-align: center;
 }
+
+.el-switch {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
 </style>

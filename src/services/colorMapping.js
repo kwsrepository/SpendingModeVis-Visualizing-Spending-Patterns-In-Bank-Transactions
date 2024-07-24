@@ -1,78 +1,120 @@
+//Daily expenses and consumption
+const color1 = "#FFF3C9";
+const color2 = "#FEE895";
+const color3 = "#FFDE5D";
+const color4 = "#FFD601";
+const color5 = "#D4B004";
+const color6 = "#A98C00";
+const color7 = "#957D01";
+const color8 = "#F3F6CB";
+
+//Financial management and transfers
+const color9 = "#C5E4D4";
+const color10 = "#91D2B2";
+const color11 = "#59BE92";
+const color12 = "#07B173";
+
+//Housing and facilities
+const color13 = "#BEC4E3";
+const color14 = "#8A9ACE";
+const color15 = "#5576BC";
+const color16 = "#0F5CAC";
+const color17 = "#114B94";
+
+//Income and investments
+const color18 = "#FDCDBF";
+const color19 = "#F9A688";
+const color20 = "#F47C5A";
+const color21 = "#F14D31";
+const color22= "#C74029";
+const color23 = "#9F3118";
+const color24 = "#902711";
+
+//Insurance and Health
+const color25 = "#CEBFDE";
+const color26 = "#AE89BF";
+
+//Other miscellaneous
+const color27 = "#FEDCBC";
+const color28 = "#FDC38C";
+const color29 = "#F9A757";
+const color30 = "#F69520";
+
 //24色轮(红/紫交换)
 export const colorMap = {
-  //Daily expenses and consumption: #FF0000
-  "Groceries": "#FFF3C9",
-  "Entertainment": "#FEE895",
-  "Amazon": "#FFDE5D",
-  "Dine Out": "#FFD601",
-  "Travel": "#D4B004",
-  "Fitness": "#A98C00",
-  "Food Shopping": "#957D01",
-  "Clothes": "#F3F6CB",
-  //Financial management and transfers: #FFEF00
-  "Savings": "#C5E4D4",
-  "Bills": "#91D2B2",
-  "Cash": "#59BE92",
-  "Account transfer": "#07B173",
-  //Housing and facilities: #07FF00
-  "Home Improvement": "#BEC4E3",
-  "Hotels": "#8A9ACE",
-  "Services/Home Improvement": "#5576BC",
-  "Mortgage": "#0F5CAC",
-  "Rent": "#114B94",
-  //Income and investments: #00FFFF
-  "Investment": "#FDCDBF",
-  "Supplementary Income": "#F9A688",
-  "Travel Reimbursement": "#F47C5A",
-  "Safety Deposit Return": "#F14D31",
-  "Interest": "#C74029",
-  "Paycheck": "#9F3118",
-  "Purchase of uk.eg.org": "#902711",
-  //Insurance and Health: #000FFF
-  "Insurance": "#CEBFDE",
-  "Health": "#AE89BF",
-  //Other miscellaneous: #F700FF
-  "Others": "#FEDCBC",
-  "Null": "#FDC38C",
-  "Services": "#F9A757",
-  "Other Shopping": "#F69520",
+  //Daily expenses and consumption
+  "Groceries": color1,
+  "Entertainment": color2,
+  "Amazon": color3,
+  "Dine Out": color4,
+  "Travel": color5,
+  "Fitness": color6,
+  "Food Shopping": color7,
+  "Clothes": color8,
+  //Financial management and transfers
+  "Savings": color9,
+  "Bills": color10,
+  "Cash": color11,
+  "Account transfer": color12,
+  //Housing and facilities
+  "Home Improvement": color13,
+  "Hotels": color14,
+  "Services/Home Improvement": color15,
+  "Mortgage": color16,
+  "Rent": color17,
+  //Income and investments
+  "Investment": color18,
+  "Supplementary Income": color19,
+  "Travel Reimbursement": color20,
+  "Safety Deposit Return": color21,
+  "Interest": color22,
+  "Paycheck": color23,
+  "Purchase of uk.eg.org": color24,
+  //Insurance and Health
+  "Insurance": color25,
+  "Health": color26,
+  //Other miscellaneous
+  "Others": color27,
+  "Null": color28,
+  "Services": color29,
+  "Other Shopping": color30,
 };
 
 export const colorMappingNew = {
   //Daily expenses and consumption
-  "A1": "#FFF3C9",
-  "A2": "#FEE895",
-  "A3": "#FFDE5D",
-  "A4": "#FFD601",
-  "A5": "#D4B004",
-  "A6": "#A98C00",
-  "A7": "#957D01",
-  "A8": "#F3F6CB",
+  "A": color1,
+  "B": color2,
+  "C": color3,
+  "D": color4,
+  "E": color5,
+  "F": color6,
+  "G": color7,
+  "H": color8,
   //Financial management and transfers
-  "B1": "#C5E4D4",
-  "B2": "#91D2B2",
-  "B3": "#59BE92",
-  "B4": "#07B173",
+  "I": color9,
+  "J": color10,
+  "K": color11,
+  "L": color12,
   //Housing and facilities
-  "C1": "#BEC4E3",
-  "C2": "#8A9ACE",
-  "C3": "#5576BC",
-  "C4": "#0F5CAC",
-  "C5": "#114B94",
+  "M": color13,
+  "N": color14,
+  "O": color15,
+  "P": color16,
+  "Q": color17,
   //Income and investments
-  "D1": "#FDCDBF",
-  "D2": "#F9A688",
-  "D3": "#F47C5A",
-  "D4": "#F14D31",
-  "D5": "#C74029",
-  "D6": "#9F3118",
-  "D7": "#902711",
+  "R": color18,
+  "S": color19,
+  "T": color20,
+  "U": color21,
+  "V": color22,
+  "W": color23,
+  "X": color24,
   //Insurance and Health
-  "E1": "#CEBFDE",
-  "E2": "#AE89BF",
+  "Y": color25,
+  "Z": color26,
   //Other miscellaneous
-  "F1": "#FEDCBC",
-  "F2": "#FDC38C",
-  "F3": "#F9A757",
-  "F4": "#F69520",
+  "1": color27,
+  "2": color28,
+  "3": color29,
+  "4": color30,
 };

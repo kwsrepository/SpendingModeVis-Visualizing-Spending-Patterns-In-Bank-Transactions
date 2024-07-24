@@ -25,9 +25,9 @@ export default {
   methods: {
     renderSequence(sequence) {
       let result = '';
-      for (let i = 0; i < sequence.length; i += 2) {
-        const pair = sequence.substr(i, 2);
-        const color = colorMappingNew[pair] || 'transparent';
+      for (let i = 0; i < sequence.length; i++) {
+        const char = sequence[i];
+        const color = colorMappingNew[char] || 'transparent';
         result += `<span style="display: inline-block; width: 15px; height: 18px; background-color: ${color}; margin-right: .1px;"></span>`;
       }
       return result;

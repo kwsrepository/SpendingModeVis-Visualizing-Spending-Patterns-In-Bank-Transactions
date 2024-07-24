@@ -77,11 +77,11 @@ svg {
 }
 
 :root {
-    --text-color: #606266;
-    --bg-color: #ffffff;
-    --scrollbar-color: #CDCDCD;
-    --scrollbar-hover-color: #C7C9CC;
-    --month-header-color: #F5F7FA;
+    --text-color: #CFD3DC;
+    --bg-color: #141414;
+    --scrollbar-color: #A3A6AD;
+    --scrollbar-hover-color: #E5EAF3;
+    --month-header-color: #555555;
 }
 
 .text-style, .similar-sequences, .tree-node-text, .year-label  {

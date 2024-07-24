@@ -55,15 +55,15 @@
             v-model="isDarkMode"
             class="ml-2"
             inline-prompt
-            style="--el-switch-on-color: #606266; --el-switch-off-color: #DDDEE0"
-            active-text="Dark"
-            inactive-text="Light"
+            style="--el-switch-on-color: #DDDEE0; --el-switch-off-color: #606266"
+            active-text="Light"
+            inactive-text="Dark"
           >
             <template #active-action>
-              <span class="custom-active-action">🌙</span>
+              <span class="custom-inactive-action">☀️</span>
             </template>
             <template #inactive-action>
-              <span class="custom-inactive-action">☀️</span>
+               <span class="custom-active-action">🌙</span>
             </template>
           </el-switch>
           <div id="select_box">
@@ -148,6 +148,7 @@ export default {
     const topSimilarSequences = ref([]);
     const yearPositions = ref({});
 
+
     const fetchData = async (showAllDatesValue) => {
       const data = await loadData();
       jsonData.value = data.jsonData;
@@ -164,6 +165,7 @@ export default {
 
     const updateTopSimilarSequences = () => {
       const selectedSequence = dailySequences.value[selectedDetails.value];
+      console.log("selectedSequence",selectedSequence)
       if (selectedSequence) {
         const allSequences = Object.keys(dailySequences.value).map(date => ({
           date,
@@ -205,7 +207,7 @@ export default {
     };
 
     const handleCheck = (node, { checkedNodes, checkedKeys }) => {
-      selectedKeys.value = checkedKeys; // 保存当前选中的键值
+      selectedKeys.value = checkedKeys;
       const selected = new Set(checkedNodes.filter(node => node.children == null).map(node => node.label));
       selectedCategories.value = selected;
       EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value);
@@ -264,18 +266,18 @@ export default {
 
     watch(isDarkMode, (newVal) => {
       const root = document.documentElement;
-      if (newVal) { //黑夜模式
-        root.style.setProperty('--text-color', '#CFD3DC');
-        root.style.setProperty('--bg-color', '#141414');
-        root.style.setProperty('--scrollbar-color', '#A3A6AD');
-        root.style.setProperty('--scrollbar-hover-color', '#E5EAF3');
-        root.style.setProperty('--month-header-color', '#555555');
-      } else {  //白天模式
+      if (newVal) { //白天模式
         root.style.setProperty('--text-color', '#606266');
         root.style.setProperty('--bg-color', '#ffffff');
         root.style.setProperty('--scrollbar-color', '#CDCDCD');
         root.style.setProperty('--scrollbar-hover-color', '#C7C9CC');
         root.style.setProperty('--month-header-color', '#F5F7FA');
+      } else {  //黑夜模式
+        root.style.setProperty('--text-color', '#CFD3DC');
+        root.style.setProperty('--bg-color', '#141414');
+        root.style.setProperty('--scrollbar-color', '#A3A6AD');
+        root.style.setProperty('--scrollbar-hover-color', '#E5EAF3');
+        root.style.setProperty('--month-header-color', '#555555');
       }
     });
 

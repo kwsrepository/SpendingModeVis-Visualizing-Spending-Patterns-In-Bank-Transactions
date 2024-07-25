@@ -6,18 +6,18 @@
         <el-button @click="close" class="close-button">Close</el-button>
       </div>
       <el-tab-pane label="Month View" class="text-style">
-          <month-view :highlightDates="similarDates" :topSimilarSequences="topSimilarSequences" />
-          <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
+        <month-view :highlightDates="similarDates" :topSimilarSequences="topSimilarSequences" />
+        <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
       </el-tab-pane>
       <el-tab-pane label="Year View" class="text-style">
-          <div v-for="year in years" :key="year" class="year-container">
-            <year-view :year="year" :highlight-dates="similarDates" />
-          </div>
-          <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
+        <div v-for="year in years" :key="year" class="year-container">
+          <year-view :year="year" :highlight-dates="similarDates" />
+        </div>
+        <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
       </el-tab-pane>
       <el-tab-pane label="Timeline" class="text-style">
-          <h2>Timeline</h2>
-          <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
+        <h2>Timeline</h2>
+        <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -48,7 +48,7 @@ export default {
       required: true
     },
     details: {
-      type: String,
+      type: Object,
       required: false
     },
     dailySequences: {
@@ -133,23 +133,22 @@ export default {
     };
 
     const updateSimilarSequences = () => {
-      if (props.details) {
-        const dateMatch = props.details.match(/Date: (\d{4}-\d{2}-\d{2})/);
-        if (dateMatch) {
-          const selectedSequence = props.dailySequences[dateMatch[1]];
-          if (selectedSequence) {
-            const allSequences = Object.keys(props.dailySequences).map(date => ({
-              date,
-              sequence: props.dailySequences[date]
-            }));
-            topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
-            similarDates.value = topSimilarSequences.value.map(seq => seq.date);
-            highlightDates();
-            emit('update-top-similar-sequences', topSimilarSequences.value);
-          }
+      if (props.details && props.details.date) {
+        const dateMatch = props.details.date; // 获取日期
+        const selectedSequence = props.dailySequences[dateMatch];
+        if (selectedSequence) {
+          const allSequences = Object.keys(props.dailySequences).map(date => ({
+            date,
+            sequence: props.dailySequences[date]
+          }));
+          topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
+          similarDates.value = topSimilarSequences.value.map(seq => seq.date);
+          highlightDates();
+          emit('update-top-similar-sequences', topSimilarSequences.value);
         }
       }
     };
+
 
     watch(() => props.details, updateSimilarSequences);
     watch(() => props.algorithm, updateSimilarSequences);
@@ -275,4 +274,3 @@ export default {
 }
 
 </style>
-

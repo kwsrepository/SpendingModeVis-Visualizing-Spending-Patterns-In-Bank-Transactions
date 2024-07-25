@@ -82,7 +82,9 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   let useDates = showAllDates ? allDates : Array.from(nestedData.keys());
 
-  const containerHeight = Math.max(useDates.length * dayHeight + margin.top + margin.bottom, 600);
+  const containerHeight = Math.max((useDates.length + 15) * (dayHeight + 1.8) + margin.top + margin.bottom, 800);
+  // console.log("useDates length:", useDates.length);
+  // console.log("Calculated containerHeight:", containerHeight);
 
   d3.select("#event-sequence svg").remove();
   const svg = d3.select("#event-sequence")
@@ -180,6 +182,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
     index++;
   });
+  console.log("Final index value:", index);
 
   updateCellsVisibility();
 
@@ -201,6 +204,6 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   //const similarSequences = findSimilarSequences(sequenceFrequencies);
   //console.log("similarSequences:", similarSequences);
 
-  console.log("dailySequences:", dailySequences);
+  // console.log("dailySequences:", dailySequences);
   return { dailySequences, yearPositions };
 }

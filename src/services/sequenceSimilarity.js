@@ -1,6 +1,8 @@
 // Levenshtein 距离
 function levenshteinDistance(a, b) {
-  console.log("Using Levenshtein Distance");
+  // a = 'example';
+  // b = 'exampel';
+  // console.log("Using Levenshtein Distance");
   if (!a || !b) return Infinity; // 确保字符串非空
 
   const matrix = [];
@@ -28,49 +30,59 @@ function levenshteinDistance(a, b) {
     }
   }
 
+  // console.log('Levenshtein distance:', matrix[b.length][a.length]);
+
   return matrix[b.length][a.length];
 }
 
 // Damerau-Levenshtein 距离
 function damerauLevenshteinDistance(a, b) {
-  console.log("Using Damerau-Levenshtein Distance");
-  if (!a || !b) return Infinity;
+  // a = 'example';
+  // b = 'exampel';
+  // console.log("Using Damerau-Levenshtein Distance");
+  if (!a || !b) return Infinity; // 确保字符串非空
 
-  const lenA = a.length;
-  const lenB = b.length;
   const matrix = [];
 
-  for (let i = 0; i <= lenA; i++) {
+  // 初始化矩阵
+  for (let i = 0; i <= b.length; i++) {
     matrix[i] = [i];
   }
-  for (let j = 0; j <= lenB; j++) {
+  for (let j = 0; j <= a.length; j++) {
     matrix[0][j] = j;
   }
 
-  for (let i = 1; i <= lenA; i++) {
-    for (let j = 1; j <= lenB; j++) {
-      const cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,    // 删除
-        matrix[i][j - 1] + 1,    // 插入
-        matrix[i - 1][j - 1] + cost // 替换
-      );
+  // 填充矩阵
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // 替换
+          matrix[i][j - 1] + 1,     // 插入
+          matrix[i - 1][j] + 1      // 删除
+        );
+      }
 
-      if (i > 1 && j > 1 && a.charAt(i - 1) === b.charAt(j - 2) && a.charAt(i - 2) === b.charAt(j - 1)) {
+      // 换位
+      if (i > 1 && j > 1 && b.charAt(i - 1) === a.charAt(j - 2) && b.charAt(i - 2) === a.charAt(j - 1)) {
         matrix[i][j] = Math.min(
           matrix[i][j],
-          matrix[i - 2][j - 2] + cost // 换位
+          matrix[i - 2][j - 2] + 1 // 换位
         );
       }
     }
   }
 
-  return matrix[lenA][lenB];
+  // console.log('Damerau-Levenshtein distance:', matrix[b.length][a.length]);
+
+  return matrix[b.length][a.length];
 }
 
 // Hamming 距离
 function hammingDistance(a, b) {
-  console.log("Using Hamming Distance");
+  // console.log("Using Hamming Distance");
   if (a.length !== b.length) return Infinity;
 
   let distance = 0;
@@ -85,7 +97,7 @@ function hammingDistance(a, b) {
 
 // Jaro-Winkler 距离
 function jaroWinklerDistance(s1, s2) {
-  console.log("Using Jaro-Winkler Distance");
+  // console.log("Using Jaro-Winkler Distance");
   if (s1 === s2) return 0;
 
   const len1 = s1.length;
@@ -155,9 +167,9 @@ function calculateSimilarity(sequence1, sequence2, algorithm) {
 }
 
 // 找出与指定序列最相似的十个序列
-export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 10) {
+export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 11) {
   const similarities = allSequences
-    .filter(seq => seq.sequence !== targetSequence) // 过滤掉自身序列
+    // .filter(seq => seq.date !== targetSequence.date) // 过滤掉自身序列
     .map(seq => ({
       date: seq.date,
       sequence: seq.sequence,

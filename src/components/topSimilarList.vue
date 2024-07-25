@@ -1,11 +1,18 @@
 <template>
   <div v-if="topSimilarSequences.length" class="similar-sequences">
-    <h3 class="text-style">Top 10 Similar Sequences</h3>
+    <!--    <h3 class="text-style">Top 10 Similar Sequences</h3>-->
     <ul>
-      <li v-for="(seq, index) in topSimilarSequences" :key="index">
+      <li>
+        <div v-if="selectedDetails" class="selected-sequence">
+          {{ selectedDetails.date }}:
+          <span v-html="renderedSelectedSequence"></span>
+          (Target Sequence)
+        </div>
+      </li>
+      <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index">
         {{ seq.date }}:
         <span v-html="renderSequence(seq.sequence)"></span>
-        ({{ seq.similarity.toFixed(2) }}%)
+        (Similarity {{ seq.similarity.toFixed(2) }}%)
       </li>
     </ul>
   </div>
@@ -20,6 +27,27 @@ export default {
     topSimilarSequences: {
       type: Array,
       required: true
+    },
+    selectedDetails: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      renderedSelectedSequence: ''
+    };
+  },
+  watch: {
+    selectedDetails(newVal) {
+      if (newVal && newVal.date && newVal.sequence) {
+        this.renderedSelectedSequence = this.renderSequence(newVal.sequence);
+      }
+    }
+  },
+  computed: {
+    filteredTopSimilarSequences() {
+      return this.topSimilarSequences.filter(seq => seq.date !== this.selectedDetails.date);
     }
   },
   methods: {

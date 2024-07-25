@@ -46,8 +46,8 @@
             class="ml-2"
             inline-prompt
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-            active-text="Less Dates"
-            inactive-text="All Dates"
+            active-text="All Dates"
+            inactive-text="Less Dates"
           />
         </div>
         <div>
@@ -77,7 +77,7 @@
         </div>
       </div>
       <div id="similar-list">
-        <top-similar-list :topSimilarSequences="topSimilarSequences" />
+        <top-similar-list :topSimilarSequences="topSimilarSequences" :selectedDetails="selectedDetails" />
       </div>
     </el-main>
     <transaction-similarity
@@ -164,16 +164,38 @@ export default {
     };
 
     const updateTopSimilarSequences = () => {
-      const selectedSequence = dailySequences.value[selectedDetails.value];
-      console.log("selectedSequence",selectedSequence)
-      if (selectedSequence) {
-        const allSequences = Object.keys(dailySequences.value).map(date => ({
-          date,
-          sequence: dailySequences.value[date]
-        }));
-        topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, selectedAlgorithm.value);
+      if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
+        const selectedSequenceDate = selectedDetails.value.date;
+        const selectedSequence = selectedDetails.value.sequence;
+
+        console.log("Selected Date:", selectedSequenceDate);
+        console.log("Selected Sequence:", selectedSequence);
+
+        if (selectedSequence) {
+          const targetSequence = { date: selectedSequenceDate, sequence: selectedSequence };
+          const allSequences = Object.keys(dailySequences.value)
+            .filter(date => date !== selectedSequenceDate) // 排除所选序列的日期
+            .map(date => ({
+              date,
+              sequence: dailySequences.value[date]
+            }));
+
+          console.log("All Sequences for Comparison:", allSequences);
+
+          topSimilarSequences.value = findTopSimilarSequences(targetSequence, allSequences, selectedAlgorithm.value);
+          console.log("Top Similar Sequences:", topSimilarSequences.value);
+        }
+      } else {
+        console.error("Selected Details do not have the expected structure:", selectedDetails.value);
       }
     };
+
+    watch(selectedDetails, () => {
+      console.log("selectedDetails changed:", selectedDetails.value);
+      updateTopSimilarSequences();
+    });
+
+
 
     const handleUpdateTopSimilarSequences = (newTopSimilarSequences) => {
       topSimilarSequences.value = newTopSimilarSequences;
@@ -216,7 +238,17 @@ export default {
     const showDetail = (event) => {
       if (event.target.classList.contains('event-rect')) {
         const transactionDate = event.target.__data__.date;
-        selectedDetails.value = `Date: ${transactionDate}, Category : ${event.target.__data__.category} , ${event.target.__data__.subCategory}`;
+        const category = event.target.__data__.category;
+        const subCategory = event.target.__data__.subCategory;
+        const sequence = dailySequences.value[transactionDate];
+
+        selectedDetails.value = {
+          date: transactionDate,
+          category: category,
+          subCategory: subCategory,
+          sequence: sequence
+        };
+
         detailVisible.value = true;
       }
     };
@@ -237,7 +269,7 @@ export default {
         const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value);
         dailySequences.value = result.dailySequences;
         yearPositions.value = result.yearPositions;
-        console.log("dailySequences in onMounted:", dailySequences.value); // 添加此行进行调试
+        // console.log("dailySequences in onMounted:", dailySequences.value);
       });
     });
 
@@ -308,6 +340,7 @@ export default {
         }
       }
     };
+    // console.log("dailySequences2:", dailySequences);
 
     return {
       showAllDates,

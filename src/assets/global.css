@@ -102,3 +102,7 @@ svg {
    background-color: var(--month-header-color);
 }
 
+#algorithm-description {
+    height: 100%;
+    /*width: 100%;*/
+}

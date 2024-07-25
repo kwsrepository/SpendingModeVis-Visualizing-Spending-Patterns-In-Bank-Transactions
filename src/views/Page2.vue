@@ -79,6 +79,9 @@
       <div id="similar-list">
         <top-similar-list :topSimilarSequences="topSimilarSequences" :selectedDetails="selectedDetails" />
       </div>
+      <div id="algorithm-description">
+        <p>{{ selectedDescription }}</p>
+      </div>
     </el-main>
     <transaction-similarity
       :visible="detailVisible"
@@ -148,6 +151,19 @@ export default {
     const topSimilarSequences = ref([]);
     const yearPositions = ref({});
 
+    const algorithmDescriptions = {
+      'levenshtein': 'Levenshtein Distance: Measures the minimum number of single-character edits required to change one string into the other.',
+      'damerau-levenshtein': 'Damerau-Levenshtein Distance: Like Levenshtein, but also allows transposition of two adjacent characters.',
+      'hamming': 'Hamming Distance: Measures the number of positions at which the corresponding symbols are different. Applicable only for strings of the same length.',
+      'jaro-winkler': 'Jaro-Winkler Distance: Measures similarity between two strings, giving more favorable ratings to strings that match from the beginning for a set prefix length.'
+    };
+
+    const selectedDescription = ref(algorithmDescriptions[selectedAlgorithm.value]);
+
+    watch(selectedAlgorithm, (newAlgorithm) => {
+      selectedDescription.value = algorithmDescriptions[newAlgorithm];
+      console.log('algorithmDescriptions:', selectedDescription.value);
+    });
 
     const fetchData = async (showAllDatesValue) => {
       const data = await loadData();
@@ -365,6 +381,7 @@ export default {
       yearPositions,
       containerRef,
       handleYearClick,
+      selectedDescription,
     };
   }
 };

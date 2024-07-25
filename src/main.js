@@ -14,4 +14,5 @@ app.use(ElementPlus);
 
 app.mount('#app');
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).mount('#app');
+

@@ -4,15 +4,17 @@
     <ul>
       <li>
         <div v-if="selectedDetails" class="selected-sequence">
-          {{ selectedDetails.date }}:
+          <span class="day-of-week">{{ getDayOfWeek(selectedDetails.date) }} </span>
+          <span class="list-date"> {{ selectedDetails.date }} </span>:
           <span v-html="renderedSelectedSequence"></span>
-          (Target Sequence)
+          <span class = "list-text">(Target Sequence) </span>
         </div>
       </li>
       <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index">
-        {{ seq.date }}:
+        <span class="day-of-week">{{ getDayOfWeek(seq.date) }} </span>
+        <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequence(seq.sequence)"></span>
-        (Similarity {{ seq.similarity.toFixed(2) }}%)
+        <span class = "list-text">(Similarity {{ seq.similarity.toFixed(2) }}%) </span>
       </li>
     </ul>
   </div>
@@ -58,7 +60,13 @@ export default {
         const color = colorMappingNew[char] || 'transparent';
         result += `<span style="display: inline-block; width: 15px; height: 18px; background-color: ${color}; margin-right: .1px;"></span>`;
       }
+      result += `<span style="margin-left: 15px;">${sequence}</span>`; // 添加序列字符串
       return result;
+    },
+    getDayOfWeek(date) {
+      const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+      const day = new Date(date).getDay();
+      return daysOfWeek[day];
     }
   }
 };
@@ -70,6 +78,7 @@ export default {
   justify-content: left;
   margin-bottom: auto;
   margin-top: auto;
+  width: fit-content;
 }
 
 .similar-sequences h3 {
@@ -85,4 +94,20 @@ export default {
 .similar-sequences li {
   margin-bottom: 5px;
 }
+
+.day-of-week {
+  display: inline-block;
+  width: 30px; /* 根据实际需求调整宽度 */
+  text-align: right;
+  margin-right: 5px; /* 调整与日期的间距 */
+}
+
+.list-text {
+  margin-left: 15px;
+}
+
+.list-date {
+  margin-right: 5px;
+}
+
 </style>

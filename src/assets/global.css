@@ -72,9 +72,34 @@ svg {
     margin-right: 25px;
     height: 100%;
     font-size: 13px;
-    width: 100%;
+    width: fit-content;
+    white-space: nowrap;
     justify-content: left;
 }
+
+.key-words {
+    background-color: #ffecb3;
+    font-weight: bold;
+    color: #606266;
+    padding-right: 2px;
+    padding-left: 2px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.monday, .tuesday, .wednesday, .thursday, .friday {
+    padding-right: 2px;
+    padding-left: 2px;
+    border-radius: 3px;
+    /*font-weight: bold;*/
+    color: white;
+}
+
+.monday {background-color: #F44336;}
+.tuesday {background-color: #9C27B0;}
+.wednesday {background-color: #3F51B5;}
+.thursday {background-color: #03A9F4;}
+.friday {background-color: #009688;}
 
 :root {
     --text-color: #CFD3DC;
@@ -84,7 +109,7 @@ svg {
     --month-header-color: #555555;
 }
 
-.text-style, .similar-sequences, .tree-node-text, .year-label  {
+.text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description  {
     fill: var(--text-color);
     color: var(--text-color);
 }
@@ -103,6 +128,10 @@ svg {
 }
 
 #algorithm-description {
-    height: 100%;
+    height: fit-content;
     /*width: 100%;*/
+    padding: 10px;
+    border: 2px solid;
+    border-color: var(--text-color);
+    border-radius: 5px;
 }

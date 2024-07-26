@@ -4,14 +4,14 @@
     <ul>
       <li>
         <div v-if="selectedDetails" class="selected-sequence">
-          <span class="day-of-week">{{ getDayOfWeek(selectedDetails.date) }} </span>
+          <span :class="['day-of-week', getDayClass(getDayOfWeek(selectedDetails.date))]">{{ getDayOfWeek(selectedDetails.date) }} </span>
           <span class="list-date"> {{ selectedDetails.date }} </span>:
           <span v-html="renderedSelectedSequence"></span>
           <span class = "list-text">(Target Sequence) </span>
         </div>
       </li>
       <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index">
-        <span class="day-of-week">{{ getDayOfWeek(seq.date) }} </span>
+        <span :class="['day-of-week', getDayClass(getDayOfWeek(seq.date))]">{{ getDayOfWeek(seq.date) }} </span>
         <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequence(seq.sequence)"></span>
         <span class = "list-text">(Similarity {{ seq.similarity.toFixed(2) }}%) </span>
@@ -67,6 +67,18 @@ export default {
       const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
       const day = new Date(date).getDay();
       return daysOfWeek[day];
+    },
+    getDayClass(day) {
+      const dayMap = {
+        Mo: 'monday',
+        Tu: 'tuesday',
+        We: 'wednesday',
+        Th: 'thursday',
+        Fr: 'friday',
+        Sa: 'saturday',
+        Su: 'sunday'
+      };
+      return dayMap[day] || '';
     }
   }
 };
@@ -98,7 +110,7 @@ export default {
 .day-of-week {
   display: inline-block;
   width: 30px; /* 根据实际需求调整宽度 */
-  text-align: right;
+  text-align: center;
   margin-right: 5px; /* 调整与日期的间距 */
 }
 

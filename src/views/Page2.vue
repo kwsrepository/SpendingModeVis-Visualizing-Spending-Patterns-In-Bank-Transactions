@@ -79,9 +79,7 @@
       <div id="similar-list">
         <top-similar-list :topSimilarSequences="topSimilarSequences" :selectedDetails="selectedDetails" />
       </div>
-      <div id="algorithm-description">
-        <p>{{ selectedDescription }}</p>
-      </div>
+      <div id="algorithm-description" v-html="selectedDescription"></div>
     </el-main>
     <transaction-similarity
       :visible="detailVisible"
@@ -152,17 +150,17 @@ export default {
     const yearPositions = ref({});
 
     const algorithmDescriptions = {
-      'levenshtein': 'Levenshtein Distance: Measures the minimum number of single-character edits required to change one string into the other.',
-      'damerau-levenshtein': 'Damerau-Levenshtein Distance: Like Levenshtein, but also allows transposition of two adjacent characters.',
-      'hamming': 'Hamming Distance: Measures the number of positions at which the corresponding symbols are different. Applicable only for strings of the same length.',
-      'jaro-winkler': 'Jaro-Winkler Distance: Measures similarity between two strings, giving more favorable ratings to strings that match from the beginning for a set prefix length.'
+      'levenshtein': '<strong>Levenshtein Distance</strong>: Measures how many single-character edits (<span class = "key-words">insertions</span>, <span class = "key-words">deletions</span>, or <span class = "key-words">substitutions</span>) are needed to change one string into another.',
+      'damerau-levenshtein': '<strong>Damerau-Levenshtein Distance</strong>: Measures the number of single-character edits (<span class = "key-words">insertions</span>, <span class = "key-words">deletions</span>, <span class = "key-words">substitutions</span>, or <span class = "key-words">transpositions of two adjacent characters</span>) needed to change one string into another',
+      'hamming': '<strong>Hamming Distance</strong>: Counts the number of positions at which two strings of <span class = "key-words">equal length</span> have different characters.',
+      'jaro-winkler': '<strong>Jaro-Winkler Distance</strong>: Measures the similarity between two strings based on the <span class = "key-words">number and order</span> of matching characters. <span class = "key-words">Common prefixes</span> increase the similarity score.'
     };
 
     const selectedDescription = ref(algorithmDescriptions[selectedAlgorithm.value]);
 
     watch(selectedAlgorithm, (newAlgorithm) => {
       selectedDescription.value = algorithmDescriptions[newAlgorithm];
-      console.log('algorithmDescriptions:', selectedDescription.value);
+      // console.log('algorithmDescriptions:', selectedDescription.value);
     });
 
     const fetchData = async (showAllDatesValue) => {

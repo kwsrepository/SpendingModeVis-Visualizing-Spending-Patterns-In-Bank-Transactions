@@ -98,6 +98,8 @@ function hammingDistance(a, b) {
 // Jaro-Winkler 距离
 function jaroWinklerDistance(s1, s2) {
   // console.log("Using Jaro-Winkler Distance");
+  if (!s1 || !s2) return Infinity;
+
   if (s1 === s2) return 0;
 
   const len1 = s1.length;
@@ -152,8 +154,6 @@ function calculateSimilarity(sequence1, sequence2, algorithm) {
     distance = damerauLevenshteinDistance(sequence1, sequence2);
   } else if (algorithm === 'hamming') {
     distance = hammingDistance(sequence1, sequence2);
-  } else if (algorithm === 'jaro-winkler') {
-    distance = jaroWinklerDistance(sequence1, sequence2);
   } else {
     throw new Error(`Unknown algorithm: ${algorithm}`);
   }
@@ -166,15 +166,25 @@ function calculateSimilarity(sequence1, sequence2, algorithm) {
   return (1-distance/length)*100;
 }
 
+//Jaro-Winkler 距离必须使用对应的Jaro-Winkler相似度
+function calculateJaroWinklerSimilarity(sequence1, sequence2) {
+  return (1 - jaroWinklerDistance(sequence1, sequence2))*100;
+}
+
 // 找出与指定序列最相似的十个序列
 export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 11) {
   const similarities = allSequences
     // .filter(seq => seq.date !== targetSequence.date) // 过滤掉自身序列
-    .map(seq => ({
-      date: seq.date,
-      sequence: seq.sequence,
-      similarity: calculateSimilarity(targetSequence, seq.sequence, algorithm)
-    }));
+    .map(seq => {
+      const similarity = algorithm === 'jaro-winkler'
+        ? calculateJaroWinklerSimilarity(targetSequence, seq.sequence)
+        : calculateSimilarity(targetSequence, seq.sequence, algorithm);
+      return {
+        date: seq.date,
+        sequence: seq.sequence,
+        similarity
+      };
+    });
 
   similarities.sort((a, b) => b.similarity - a.similarity);
 

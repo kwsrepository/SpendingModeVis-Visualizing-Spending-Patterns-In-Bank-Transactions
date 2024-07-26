@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import d3Tip from 'd3-tip';
 import { colorMap } from '@/services/colorMapping';
 import { subCategoryMapping } from '@/services/StringMapping';
 
@@ -40,12 +41,18 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       }
     }
 
+    const category = d["Category"] ? d["Category"].trim() : 'Null';
     const subCategory = d["subCategory"] ? d["subCategory"].trim() : 'Null';
+    const debitAmount = d["Debit Amount"] ? d["Debit Amount"] : 0;
+    const creditAmount = d["Credit Amount"] ? d["Credit Amount"] : 0;
     const transactionNumber = d["Transaction Number"] ? d["Transaction Number"] : 0;
 
     return {
       date: formattedDate,
+      category: category,
       subCategory: subCategory,
+      debitAmount: debitAmount,
+      creditAmount: creditAmount,
       transactionNumber: transactionNumber
     };
   }).filter(d => d.date);
@@ -86,13 +93,37 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   // console.log("useDates length:", useDates.length);
   // console.log("Calculated containerHeight:", containerHeight);
 
+  // 初始化 d3-tip
+  const tip = d3Tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(d => {
+      let tooltipContent = `
+      <strong>Date:</strong> <span>${d.date}</span><br>
+      <strong>Category:</strong> <span>${d.category}</span><br>
+      <strong>SubCategory:</strong> <span>${d.subCategory}</span><br>
+    `;
+
+      // Debit Amount 和 Credit Amount 为 0 时不显示
+      if (d.debitAmount !== 0) {
+        tooltipContent += `<strong>Debit Amount:</strong> <span>${d.debitAmount}</span><br>`;
+      }
+
+      if (d.creditAmount !== 0) {
+        tooltipContent += `<strong>Credit Amount:</strong> <span>${d.creditAmount}</span>`;
+      }
+
+      return tooltipContent;
+    });
+
   d3.select("#event-sequence svg").remove();
   const svg = d3.select("#event-sequence")
     .append("svg")
     .attr("width", containerWidth)
     .attr("height", containerHeight)
     .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    .attr("transform", `translate(${margin.left},${margin.top})`)
+    .call(tip);
 
   let index = 0;
   const existingDates = new Set(nestedData.keys());
@@ -154,7 +185,13 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .attr("width", cellWidth)
         .attr("height", dayHeight - 2)
         .attr("class", "event-rect")
-        .attr("fill", d => color(d.subCategory));
+        .attr("fill", d => color(d.subCategory))
+        .on('mouseover', function(event, d) {
+          tip.show(d, this);
+        })
+        .on('mouseout', function(event, d) {
+          tip.hide(d, this);
+        });
     }
 
     g.append("text")

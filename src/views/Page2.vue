@@ -79,7 +79,12 @@
       <div id="similar-list">
         <top-similar-list :topSimilarSequences="topSimilarSequences" :selectedDetails="selectedDetails" />
       </div>
-      <div id="algorithm-description" v-html="selectedDescription"></div>
+      <div id="algorithm-details">
+        <div id="algorithm-description" v-html="selectedDescription"></div>
+        <div id="algorithm-process">
+          <p>算法的计算过程。注意两个序列用d3绘制，方便后期加tooltip.<br>原本的相似序列list不用加tooltip了，用户想看啥就点击后再在此处查看</p>
+        </div>
+      </div>
     </el-main>
     <transaction-similarity
       :visible="detailVisible"
@@ -182,8 +187,8 @@ export default {
         const selectedSequenceDate = selectedDetails.value.date;
         const selectedSequence = selectedDetails.value.sequence;
 
-        console.log("Selected Date:", selectedSequenceDate);
-        console.log("Selected Sequence:", selectedSequence);
+        // console.log("Selected Date:", selectedSequenceDate);
+        // console.log("Selected Sequence:", selectedSequence);
 
         if (selectedSequence) {
           const targetSequence = { date: selectedSequenceDate, sequence: selectedSequence };
@@ -194,10 +199,10 @@ export default {
               sequence: dailySequences.value[date]
             }));
 
-          console.log("All Sequences for Comparison:", allSequences);
+          // console.log("All Sequences for Comparison:", allSequences);
 
           topSimilarSequences.value = findTopSimilarSequences(targetSequence, allSequences, selectedAlgorithm.value);
-          console.log("Top Similar Sequences:", topSimilarSequences.value);
+          // console.log("Top Similar Sequences:", topSimilarSequences.value);
         }
       } else {
         console.error("Selected Details do not have the expected structure:", selectedDetails.value);
@@ -208,8 +213,6 @@ export default {
       console.log("selectedDetails changed:", selectedDetails.value);
       updateTopSimilarSequences();
     });
-
-
 
     const handleUpdateTopSimilarSequences = (newTopSimilarSequences) => {
       topSimilarSequences.value = newTopSimilarSequences;
@@ -254,12 +257,16 @@ export default {
         const transactionDate = event.target.__data__.date;
         const category = event.target.__data__.category;
         const subCategory = event.target.__data__.subCategory;
+        const debitAmount = event.target.__data__.debitAmount;
+        const creditAmount = event.target.__data__.creditAmount;
         const sequence = dailySequences.value[transactionDate];
 
         selectedDetails.value = {
           date: transactionDate,
           category: category,
           subCategory: subCategory,
+          debitAmount: debitAmount,
+          creditAmount: creditAmount,
           sequence: sequence
         };
 

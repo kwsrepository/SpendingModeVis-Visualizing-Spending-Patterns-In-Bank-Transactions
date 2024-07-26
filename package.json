@@ -10,6 +10,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "d3": "^7.9.0",
+    "d3-tip": "^0.9.1",
     "element-plus": "^2.7.7",
     "v-calendar": "^3.1.2",
     "vue": "^3.2.13",

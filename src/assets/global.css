@@ -10,6 +10,35 @@ body {
     /*border-right: 2px solid #E4E4E4;*/
 }
 
+.d3-tip {
+    line-height: 1;
+    font-weight: bold;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+
 .el-anchor__list {
     border-left: 2px solid #E4E4E4;
 }
@@ -109,7 +138,7 @@ svg {
     --month-header-color: #555555;
 }
 
-.text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description  {
+.text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description, #algorithm-process {
     fill: var(--text-color);
     color: var(--text-color);
 }
@@ -127,11 +156,21 @@ svg {
    background-color: var(--month-header-color);
 }
 
-#algorithm-description {
+#algorithm-description, #algorithm-process {
     height: fit-content;
     /*width: 100%;*/
     padding: 10px;
-    border: 2px solid;
+    border: 1px solid;
+    border-color: var(--text-color);
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+#algorithm-process {
+    height: fit-content;
+    /*width: 100%;*/
+    padding: 10px;
+    border: 1px solid;
     border-color: var(--text-color);
     border-radius: 5px;
 }

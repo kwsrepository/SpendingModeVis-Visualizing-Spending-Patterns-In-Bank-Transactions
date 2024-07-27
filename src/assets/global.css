@@ -38,6 +38,16 @@ body {
     left: 0;
 }
 
+.day-of-week {
+    display: inline-block;
+    width: 30px; /* 根据实际需求调整宽度 */
+    text-align: center;
+    margin-right: 5px; /* 调整与日期的间距 */
+}
+
+.list-text {
+    margin-left: 15px;
+}
 
 .el-anchor__list {
     border-left: 2px solid #E4E4E4;

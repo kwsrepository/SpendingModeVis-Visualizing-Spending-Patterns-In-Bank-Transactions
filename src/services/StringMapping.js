@@ -39,3 +39,6 @@ export const subCategoryMapping = {
   'Services': '3',
   'Other Shopping': '4'
 };
+
+//将字符映射回subCategory
+export const charToSubCategory = Object.fromEntries(Object.entries(subCategoryMapping).map(([key, value]) => [value, key]));

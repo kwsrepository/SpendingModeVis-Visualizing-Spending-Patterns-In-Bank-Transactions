@@ -63,7 +63,7 @@
               <span class="custom-inactive-action">☀️</span>
             </template>
             <template #inactive-action>
-               <span class="custom-active-action">🌙</span>
+              <span class="custom-active-action">🌙</span>
             </template>
           </el-switch>
           <div id="select_box">
@@ -82,7 +82,7 @@
       <div id="algorithm-details">
         <div id="algorithm-description" v-html="selectedDescription"></div>
         <div id="algorithm-process">
-          <p>算法的计算过程。注意两个序列用d3绘制，方便后期加tooltip.<br>原本的相似序列list不用加tooltip了，用户想看啥就点击后再在此处查看</p>
+          <algorithm-process :details="selectedDetails"></algorithm-process>
         </div>
       </div>
     </el-main>
@@ -105,6 +105,7 @@ import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
 import { findTopSimilarSequences } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
+import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import '@/assets/global.css';
 import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption } from 'element-plus';
 
@@ -119,6 +120,7 @@ export default {
     ElScrollbar,
     TransactionSimilarity,
     TopSimilarList,
+    AlgorithmProcess,
     ElAnchor,
     ElAnchorLink,
     ElCol,
@@ -149,7 +151,14 @@ export default {
     const containerRef = ref(null);
 
     const detailVisible = ref(false);
-    const selectedDetails = ref('');
+    const selectedDetails = ref({
+      date: '',
+      category: '',
+      subCategory: '',
+      debitAmount: '',
+      creditAmount: '',
+      sequence: '',
+    });
     const dailySequences = ref({});
     const topSimilarSequences = ref([]);
     const yearPositions = ref({});
@@ -454,4 +463,3 @@ export default {
   margin-top: 10px;
 }
 </style>
-

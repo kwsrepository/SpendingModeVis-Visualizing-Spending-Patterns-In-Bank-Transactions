@@ -13,7 +13,7 @@
       <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index">
         <span :class="['day-of-week', getDayClass(getDayOfWeek(seq.date))]">{{ getDayOfWeek(seq.date) }} </span>
         <span class="list-date"> {{ seq.date }} </span>:
-        <span v-html="renderSequence(seq.sequence)"></span>
+        <span v-html="renderSequenceWithTooltip(seq.sequence, seq.date)"></span>
         <span class = "list-text">(Similarity {{ seq.similarity.toFixed(2) }}%) </span>
       </li>
     </ul>
@@ -22,6 +22,8 @@
 
 <script>
 import { colorMappingNew } from '@/services/colorMapping.js';
+import { charToSubCategory } from '@/services/StringMapping.js';
+import '@/assets/global.css';
 
 export default {
   name: 'TopSimilarList',
@@ -43,7 +45,7 @@ export default {
   watch: {
     selectedDetails(newVal) {
       if (newVal && newVal.date && newVal.sequence) {
-        this.renderedSelectedSequence = this.renderSequence(newVal.sequence);
+        this.renderedSelectedSequence = this.renderSequenceWithTooltip(newVal.sequence, newVal.date);
       }
     }
   },
@@ -53,12 +55,14 @@ export default {
     }
   },
   methods: {
-    renderSequence(sequence) {
+    renderSequenceWithTooltip(sequence, date) {
       let result = '';
       for (let i = 0; i < sequence.length; i++) {
         const char = sequence[i];
         const color = colorMappingNew[char] || 'transparent';
-        result += `<span style="display: inline-block; width: 15px; height: 18px; background-color: ${color}; margin-right: .1px;"></span>`;
+        const subCategory = charToSubCategory[char] || 'Unknown';
+        const tooltip = `Date: ${date}, Char: ${char}, SubCategory: ${subCategory}`;
+        result += `<span title="${tooltip}" style="display: inline-block; width: 15px; height: 18px; background-color: ${color};"></span>`;
       }
       result += `<span style="margin-left: 15px;">${sequence}</span>`; // 添加序列字符串
       return result;
@@ -105,17 +109,6 @@ export default {
 
 .similar-sequences li {
   margin-bottom: 5px;
-}
-
-.day-of-week {
-  display: inline-block;
-  width: 30px; /* 根据实际需求调整宽度 */
-  text-align: center;
-  margin-right: 5px; /* 调整与日期的间距 */
-}
-
-.list-text {
-  margin-left: 15px;
 }
 
 .list-date {

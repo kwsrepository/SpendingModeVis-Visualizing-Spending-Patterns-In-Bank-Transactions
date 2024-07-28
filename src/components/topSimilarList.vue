@@ -10,7 +10,7 @@
           <span class = "list-text">(Target Sequence) </span>
         </div>
       </li>
-      <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index">
+      <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index" @click="selectSimilarSequence(seq)">
         <span :class="['day-of-week', getDayClass(getDayOfWeek(seq.date))]">{{ getDayOfWeek(seq.date) }} </span>
         <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequenceWithTooltip(seq.sequence, seq.date)"></span>
@@ -95,7 +95,16 @@ export default {
         Su: 'sunday'
       };
       return dayMap[day] || '';
-    }
+    },
+    selectSimilarSequence(seq) {
+      const similarDetails = {
+        date: seq.date,
+        sequence: seq.sequence,
+        debitAmounts: this.listAmounts[seq.date]?.debitAmounts || [],
+        creditAmounts: this.listAmounts[seq.date]?.creditAmounts || [],
+      };
+      this.$emit('select-similar-sequence', similarDetails);
+    },
   }
 };
 </script>

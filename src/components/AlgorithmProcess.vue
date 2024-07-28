@@ -9,6 +9,15 @@
       <span class = "list-text">(Target Sequence) </span>
     </div>
   </div>
+  <div v-if="similarDetails">
+    <div id="similar-sequence-visualization-container">
+      <span :class="['day-of-week', getDayClass(getDayOfWeek(similarDetails.date))]">{{ getDayOfWeek(similarDetails.date) }}</span>
+      <span class="list-date">{{ similarDetails.date }}</span>
+      <div id="similar-sequence-visualization"></div>
+      <span class="similar-sequence">{{ similarDetails.sequence }}</span>
+      <span class="list-text">(Selected Similar Sequence) </span>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -23,29 +32,44 @@ export default {
     details: {
       type: Object,
       required: true
+    },
+    similarDetails: {
+      type: Object,
+      required: false
     }
   },
   mounted() {
     if (this.details && this.details.sequence) {
-      this.drawSequence(this.details.sequence);
+      this.drawSequence(this.details.sequence, "#sequence-visualization", this.details);
+    }
+    if (this.similarDetails && this.similarDetails.sequence) {
+      console.log("similarDetails:", this.similarDetails);
+      this.drawSequence(this.similarDetails.sequence, "#similar-sequence-visualization", this.similarDetails);
     }
   },
   watch: {
     details(newVal) {
       if (newVal && newVal.sequence) {
-        this.drawSequence(newVal.sequence);
+        this.drawSequence(newVal.sequence, "#sequence-visualization", newVal);
+      }
+    },
+    similarDetails(newVal) {
+      if (newVal && newVal.sequence) {
+        console.log("similarDetails changed:", newVal);
+        this.drawSequence(newVal.sequence, "#similar-sequence-visualization", newVal);
       }
     }
   },
   methods: {
-    drawSequence(sequence) {
+    drawSequence(sequence, containerId, data) {
       if (!sequence) return;
 
       // 清空之前的SVG内容
-      d3.select("#sequence-visualization").selectAll("*").remove();
+      d3.select(containerId).selectAll("*").remove();
+      d3.select("#similar-sequence-visualization").selectAll("*").remove();
 
       const svgWidth = sequence.length * 15;
-      const svg = d3.select("#sequence-visualization").append("svg")
+      const svg = d3.select(containerId).append("svg")
         .attr("width", svgWidth)
         .attr("height", 18);
 
@@ -61,9 +85,9 @@ export default {
         .append("title") // 用于显示tooltip
         .text((d, i) => {
           const subCategory = charToSubCategory[d] || 'Unknown';
-          const debitAmount = this.details.debitAmounts && this.details.debitAmounts[i] !== 0 ? `, Debit Amount: ${this.details.debitAmounts[i]}` : '';
-          const creditAmount = this.details.creditAmounts && this.details.creditAmounts[i] !== 0 ? `, Credit Amount: ${this.details.creditAmounts[i]}` : '';
-          return `Date: ${this.details.date}, Char: ${d}, SubCategory: ${subCategory}${debitAmount}${creditAmount}`;
+          const debitAmount = data.debitAmounts && data.debitAmounts[i] !== 0 ? `, Debit Amount: ${data.debitAmounts[i]}` : '';
+          const creditAmount = data.creditAmounts && data.creditAmounts[i] !== 0 ? `, Credit Amount: ${data.creditAmounts[i]}` : '';
+          return `Date: ${data.date}, Char: ${d}, SubCategory: ${subCategory}${debitAmount}${creditAmount}`;
         });
     },
     getColor(char) {
@@ -92,7 +116,7 @@ export default {
 </script>
 
 <style scoped>
-#sequence-visualization-container {
+#sequence-visualization-container, #similar-sequence-visualization-container {
   display: flex;
   align-items: center;
   font-size: 13px;
@@ -102,13 +126,14 @@ export default {
   margin-right: 5px;
 }
 
-#sequence-visualization {
+#sequence-visualization, #similar-sequence-visualization {
   display: inline-block;
 }
 
-.original-sequence {
+.original-sequence, .similar-sequence {
   margin-left: 15px;
   text-align: left;
 }
 
 </style>
+

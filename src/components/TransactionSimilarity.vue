@@ -2,7 +2,7 @@
   <div v-if="visible" class="transaction-detail">
     <el-tabs type="border-card" class="custom-tabs">
       <div class="header">
-        <p class="text-style">{{ details }}</p>
+<!--        <p class="text-style">{{ details }}</p>-->
         <el-button @click="close" class="close-button">Close</el-button>
       </div>
       <el-tab-pane label="Month View" class="text-style">

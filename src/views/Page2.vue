@@ -81,12 +81,13 @@
           :topSimilarSequences="topSimilarSequences"
           :selectedDetails="selectedDetails"
           :listAmounts="listAmounts"
+          @select-similar-sequence="handleSelectSimilarSequence"
         />
       </div>
       <div id="algorithm-details">
         <div id="algorithm-description" v-html="selectedDescription"></div>
         <div id="algorithm-process">
-          <algorithm-process :details="selectedDetails"></algorithm-process>
+          <algorithm-process :details="selectedDetails" :similarDetails="selectedSimilarDetails"></algorithm-process>
         </div>
       </div>
     </el-main>
@@ -163,6 +164,12 @@ export default {
       creditAmount: '',
       sequence: '',
     });
+    const selectedSimilarDetails = ref({
+      date: '',
+      sequence: '',
+      debitAmounts: [],
+      creditAmounts: []
+    });
     const dailySequences = ref({});
     const dailyAmounts = ref({});
     const topSimilarSequences = ref([]);
@@ -181,6 +188,9 @@ export default {
     watch(selectedAlgorithm, (newAlgorithm) => {
       selectedDescription.value = algorithmDescriptions[newAlgorithm];
       // console.log('algorithmDescriptions:', selectedDescription.value);
+
+      // 每次用户切换算法时，清空之前选择的相似序列
+      selectedSimilarDetails.value = null;
     });
 
     const fetchData = async (showAllDatesValue) => {
@@ -254,6 +264,11 @@ export default {
         // console.log("listAmounts:", listAmounts.value);
       }
     });
+
+    const handleSelectSimilarSequence = (sequenceDetails) => {
+      selectedSimilarDetails.value = sequenceDetails;
+      console.log("selectedSimilarDetails:", selectedSimilarDetails.value);
+    };
 
     const categoryMapping = {
       'Daily expenses and consumption': 'Daily expenses & consumption',
@@ -426,7 +441,9 @@ export default {
       handleYearClick,
       selectedDescription,
       dailyAmounts,
-      listAmounts
+      listAmounts,
+      selectedSimilarDetails,
+      handleSelectSimilarSequence
     };
   }
 };

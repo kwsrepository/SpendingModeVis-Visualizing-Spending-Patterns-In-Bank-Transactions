@@ -99,18 +99,18 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     .offset([-10, 0])
     .html(d => {
       let tooltipContent = `
-      <strong>Date:</strong> <span>${d.date}</span><br>
-      <strong>Category:</strong> <span>${d.category}</span><br>
-      <strong>SubCategory:</strong> <span>${d.subCategory}</span><br>
+      <span>Date:</span> <span>${d.date}</span><br>
+      <span>Category:</span> <span>${d.category}</span><br>
+      <span>SubCategory:</span> <span>${d.subCategory}</span><br>
     `;
 
       // Debit Amount 和 Credit Amount 为 0 时不显示
       if (d.debitAmount !== 0) {
-        tooltipContent += `<strong>Debit Amount:</strong> <span>${d.debitAmount}</span><br>`;
+        tooltipContent += `<span>Debit Amount:</span> <span>${d.debitAmount}</span><br>`;
       }
 
       if (d.creditAmount !== 0) {
-        tooltipContent += `<strong>Credit Amount:</strong> <span>${d.creditAmount}</span>`;
+        tooltipContent += `<span>Credit Amount:</span> <span>${d.creditAmount}</span>`;
       }
 
       return tooltipContent;
@@ -129,6 +129,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   const existingDates = new Set(nestedData.keys());
 
   const dailySequences = {};
+  const dailyAmounts = {};
   let previousYear = null;
   const yearPositions = {};
 
@@ -175,6 +176,10 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       // console.log(`Date: ${date}, Sequence: ${sequence}`);
 
       dailySequences[date] = sequence;
+      dailyAmounts[date] = {
+        debitAmounts: transactions.map(t => t.debitAmount),
+        creditAmounts: transactions.map(t => t.creditAmount)
+      };
 
       g.selectAll("rect")
         .data(transactions)
@@ -219,7 +224,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
     index++;
   });
-  console.log("Final index value:", index);
+  // console.log("Final index value:", index);
 
   updateCellsVisibility();
 
@@ -242,5 +247,6 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   //console.log("similarSequences:", similarSequences);
 
   // console.log("dailySequences:", dailySequences);
-  return { dailySequences, yearPositions };
+  // console.log("dailyAmounts:", dailyAmounts);
+  return { dailySequences, dailyAmounts, yearPositions };
 }

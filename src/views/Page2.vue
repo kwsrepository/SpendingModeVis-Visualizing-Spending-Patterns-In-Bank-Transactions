@@ -77,7 +77,11 @@
         </div>
       </div>
       <div id="similar-list">
-        <top-similar-list :topSimilarSequences="topSimilarSequences" :selectedDetails="selectedDetails" />
+        <top-similar-list
+          :topSimilarSequences="topSimilarSequences"
+          :selectedDetails="selectedDetails"
+          :listAmounts="listAmounts"
+        />
       </div>
       <div id="algorithm-details">
         <div id="algorithm-description" v-html="selectedDescription"></div>
@@ -160,7 +164,9 @@ export default {
       sequence: '',
     });
     const dailySequences = ref({});
+    const dailyAmounts = ref({});
     const topSimilarSequences = ref([]);
+    const listAmounts = ref({});
     const yearPositions = ref({});
 
     const algorithmDescriptions = {
@@ -183,6 +189,8 @@ export default {
       worksheet.value = data.worksheet;
       const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDatesValue, selectedCategories.value);
       dailySequences.value = result.dailySequences;
+      dailyAmounts.value = result.dailyAmounts;
+      // console.log("dailyAmounts:", dailyAmounts);
 
       yearPositions.value = Object.fromEntries(
         Object.entries(result.yearPositions).sort((a, b) => b[0] - a[0])
@@ -212,6 +220,8 @@ export default {
 
           topSimilarSequences.value = findTopSimilarSequences(targetSequence, allSequences, selectedAlgorithm.value);
           // console.log("Top Similar Sequences:", topSimilarSequences.value);
+          // 这里取到的topSimilarSequences不是真的最相似序列list的信息，只是取了数据集中最晚的10个日期
+          // 在后面的handleUpdateTopSimilarSequences中才取到了真正的topSimilarSequences
         }
       } else {
         console.error("Selected Details do not have the expected structure:", selectedDetails.value);
@@ -226,7 +236,24 @@ export default {
     const handleUpdateTopSimilarSequences = (newTopSimilarSequences) => {
       topSimilarSequences.value = newTopSimilarSequences;
       // console.log('Top Similar Sequences:', topSimilarSequences.value);
+      // 这里取到的topSimilarSequences才是真正最相似序列list的信息，已经经过排序过滤
     };
+
+    watch(topSimilarSequences, (newVal) => {
+      if (newVal && dailyAmounts.value) {
+        const newListAmounts = {};
+        newVal.forEach(seq => {
+          if (dailyAmounts.value[seq.date]) {
+            newListAmounts[seq.date] = {
+              debitAmounts: dailyAmounts.value[seq.date].debitAmounts,
+              creditAmounts: dailyAmounts.value[seq.date].creditAmounts
+            };
+          }
+        });
+        listAmounts.value = newListAmounts;
+        // console.log("listAmounts:", listAmounts.value);
+      }
+    });
 
     const categoryMapping = {
       'Daily expenses and consumption': 'Daily expenses & consumption',
@@ -276,7 +303,9 @@ export default {
           subCategory: subCategory,
           debitAmount: debitAmount,
           creditAmount: creditAmount,
-          sequence: sequence
+          sequence: sequence,
+          debitAmounts: dailyAmounts.value[transactionDate].debitAmounts,
+          creditAmounts: dailyAmounts.value[transactionDate].creditAmounts
         };
 
         detailVisible.value = true;
@@ -302,7 +331,6 @@ export default {
         // console.log("dailySequences in onMounted:", dailySequences.value);
       });
     });
-
 
     const renderContent = (h, { node, data }) => {
       return h('span', [
@@ -371,6 +399,7 @@ export default {
       }
     };
     // console.log("dailySequences2:", dailySequences);
+    // console.log("dailyAmounts:", dailyAmounts);
 
     return {
       showAllDates,
@@ -396,6 +425,8 @@ export default {
       containerRef,
       handleYearClick,
       selectedDescription,
+      dailyAmounts,
+      listAmounts
     };
   }
 };

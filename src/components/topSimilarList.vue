@@ -35,12 +35,19 @@ export default {
     selectedDetails: {
       type: Object,
       required: true
+    },
+    listAmounts: {
+      type: Object,
+      required: true
     }
   },
   data() {
     return {
       renderedSelectedSequence: ''
     };
+  },
+  mounted() {
+    console.log('listAmounts:', this.listAmounts);
   },
   watch: {
     selectedDetails(newVal) {
@@ -57,11 +64,16 @@ export default {
   methods: {
     renderSequenceWithTooltip(sequence, date) {
       let result = '';
+      const debitAmounts = this.listAmounts[date]?.debitAmounts || [];
+      const creditAmounts = this.listAmounts[date]?.creditAmounts || [];
+
       for (let i = 0; i < sequence.length; i++) {
         const char = sequence[i];
         const color = colorMappingNew[char] || 'transparent';
         const subCategory = charToSubCategory[char] || 'Unknown';
-        const tooltip = `Date: ${date}, Char: ${char}, SubCategory: ${subCategory}`;
+        const debitAmount = debitAmounts[i] !== 0 ? `, Debit Amount: ${debitAmounts[i]}` : '';
+        const creditAmount = creditAmounts[i] !== 0 ? `, Credit Amount: ${creditAmounts[i]}` : '';
+        const tooltip = `Date: ${date}, Char: ${char}, SubCategory: ${subCategory}${debitAmount}${creditAmount}`;
         result += `<span title="${tooltip}" style="display: inline-block; width: 15px; height: 18px; background-color: ${color};"></span>`;
       }
       result += `<span style="margin-left: 15px;">${sequence}</span>`; // 添加序列字符串
@@ -116,3 +128,4 @@ export default {
 }
 
 </style>
+

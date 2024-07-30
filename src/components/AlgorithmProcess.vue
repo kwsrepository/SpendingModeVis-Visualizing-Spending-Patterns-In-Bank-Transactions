@@ -43,7 +43,6 @@ export default {
       this.drawSequence(this.details.sequence, "#sequence-visualization", this.details);
     }
     if (this.similarDetails && this.similarDetails.sequence) {
-      console.log("similarDetails:", this.similarDetails);
       this.drawSequence(this.similarDetails.sequence, "#similar-sequence-visualization", this.similarDetails);
     }
   },
@@ -55,7 +54,6 @@ export default {
     },
     similarDetails(newVal) {
       if (newVal && newVal.sequence) {
-        console.log("similarDetails changed:", newVal);
         this.drawSequence(newVal.sequence, "#similar-sequence-visualization", newVal);
       }
     }

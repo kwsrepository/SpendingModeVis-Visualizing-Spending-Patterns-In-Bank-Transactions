@@ -2,11 +2,13 @@ import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
 import { colorMap } from '@/services/colorMapping';
 import { subCategoryMapping } from '@/services/StringMapping';
+import { mapHeight } from '@/services/sizeMapping';
 
-export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set()) {
+export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set(), useMappedHeight = false) {
   //console.log("EventSequenceChart data:", data);
+  console.log("EventSequenceChart useMappedHeight:", useMappedHeight);
 
-  const parsedData = data.map((d, index) => {
+  let parsedData = data.map((d, index) => {
     let cellAddress = `B${index + 2}`;
     let cell = worksheet[cellAddress];
     let dateStr = d["Transaction Date"];
@@ -56,6 +58,10 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       transactionNumber: transactionNumber
     };
   }).filter(d => d.date);
+
+  if (useMappedHeight) {
+    parsedData = mapHeight(parsedData);
+  }
 
   const nestedData = d3.group(parsedData, d => d.date);
   const allDateArray = Array.from(nestedData.keys()).sort((a, b) => new Date(b) - new Date(a));
@@ -138,11 +144,11 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
     if (year !== previousYear) {
       if (index != 0) {
-        index++;  //给每一年起始位置来一行间隔
+        index += dayHeight;  //给每一年起始位置来一行间隔
       }
 
       svg.append("g")
-        .attr("transform", `translate(0, ${index * dayHeight})`)
+        .attr("transform", `translate(0, ${index})`)
         .append("text")
         .attr("class", "year-label")
         .attr("id", `year-${year}`) // 添加锚点ID
@@ -152,19 +158,20 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .attr("text-anchor", "start")
         .text(`${year}`);
 
-      yearPositions[year] = index * dayHeight;
+      yearPositions[year] = index;
       previousYear = year;
-      index++; // 增加 index 以确保年份文本占据整行
+      index += dayHeight; // 增加 index 以确保年份文本占据整行
     }
-
     const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).substring(0, 2);
 
+    const transactions = nestedData.get(date) || [];
+    const maxRectHeight = useMappedHeight ? d3.max(transactions, d => d.mappedHeight) || dayHeight : dayHeight;
+    const rowHeight = maxRectHeight + 2; // 增加一些间隔
+
     const g = svg.append("g")
-      .attr("transform", `translate(0, ${index * dayHeight})`);
+      .attr("transform", `translate(0, ${index})`);
 
     if (existingDates.has(date)) {
-      const transactions = nestedData.get(date);
-
       transactions.sort((b, a) => a.transactionNumber - b.transactionNumber);
 
       // 将每个交易的子类别拼接成字符串
@@ -172,8 +179,6 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         const subCategoryCode = subCategoryMapping[t.subCategory] || '0';
         return `${subCategoryCode}`;
       }).join("");
-
-      // console.log(`Date: ${date}, Sequence: ${sequence}`);
 
       dailySequences[date] = sequence;
       dailyAmounts[date] = {
@@ -188,7 +193,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .attr("x", (d, i) => i * cellWidth - 20)
         .attr("y", 0)
         .attr("width", cellWidth)
-        .attr("height", dayHeight - 2)
+        .attr("height", d => useMappedHeight ? d.mappedHeight : dayHeight - 2)
         .attr("class", "event-rect")
         .attr("fill", d => color(d.subCategory))
         .on('mouseover', function(event, d) {
@@ -202,14 +207,14 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     g.append("text")
       .attr("class", "text-style")
       .attr("x", -90)
-      .attr("y", dayHeight / 2)
+      .attr("y", maxRectHeight / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "start")
       .text(date.slice(5)); // 只输出 "MM-DD"
 
     g.append("rect")
       .attr("x", -150)
-      .attr("y", dayHeight / 2 - 10)
+      .attr("y", maxRectHeight / 2 - 10)
       .attr("width", 60)
       .attr("height", 20)
       .attr("fill", "none");
@@ -217,13 +222,14 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     g.append("text")
       .attr("class", "text-style")
       .attr("x", -130)
-      .attr("y", dayHeight / 2)
+      .attr("y", maxRectHeight / 2)
       .attr("dy", "0.35em")
       .attr("text-anchor", "middle")  // 中心对齐
       .text(dayOfWeek);
 
-    index++;
+    index += rowHeight; // 根据当前行的高度调整 index
   });
+
   // console.log("Final index value:", index);
 
   updateCellsVisibility();
@@ -250,3 +256,4 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   // console.log("dailyAmounts:", dailyAmounts);
   return { dailySequences, dailyAmounts, yearPositions };
 }
+

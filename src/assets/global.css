@@ -10,6 +10,10 @@ body {
     /*border-right: 2px solid #E4E4E4;*/
 }
 
+.text-style {
+    font-size: 13px;
+}
+
 .d3-tip {
     line-height: 1;
     padding: 5px;

@@ -79,6 +79,7 @@
               <el-option label="Do Not Map" :value="'none'"></el-option>
               <el-option label="Map Height" :value="'height'"></el-option>
               <el-option label="Map Width" :value="'width'"></el-option>
+              <el-option label="Map to Area" value="area"></el-option>
             </el-select>
           </div>
         </div>
@@ -161,9 +162,7 @@ export default {
     const selectedKeys = ref([]);
     const legendTree = ref(null);
     const containerRef = ref(null);
-    // const useMappedHeight = ref(false);
     const selectedMapping = ref('none');
-
 
     const detailVisible = ref(false);
     const selectedDetails = ref({
@@ -308,7 +307,6 @@ export default {
       }));
     };
 
-
     const handleCheck = (node, { checkedNodes, checkedKeys }) => {
       selectedKeys.value = checkedKeys;
       const selected = new Set(checkedNodes.filter(node => node.children == null).map(node => node.label));
@@ -345,18 +343,11 @@ export default {
       detailVisible.value = false;
     };
 
-    // watch(useMappedHeight, () => {
-    //   fetchData(showAllDates.value).then(() => {
-    //     legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
-    //   });
-    // });
-
     watch(selectedMapping, () => {
       fetchData(showAllDates.value).then(() => {
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
       });
     });
-
 
     onMounted(() => {
       fetchData(showAllDates.value).then(() => {
@@ -531,8 +522,8 @@ export default {
 }
 
 .el-switch >>> .el-switch__core {
-  height: 100% !important; /* 强制设置开关核心的高度 */
-  width: 100% !important; /* 强制设置开关核心的宽度 */
+  height: 100% !important;
+  width: 100% !important;
   border-radius: 20px;
 }
 

@@ -29,3 +29,21 @@ export function mapWidth(parsedData) {
 
   return parsedData;
 }
+
+export function mapArea(parsedData) {
+  const maxTransactionValue = d3.max(parsedData, d => d.debitAmount + d.creditAmount);
+  const maxArea = 400 * 400; // 最大面积, 可根据需要调整
+
+  const areaScale = d3.scaleLinear()
+    .domain([0, maxTransactionValue])
+    .range([225, maxArea]);
+
+  // Update each transaction's area, width, and height
+  parsedData.forEach(d => {
+    const area = areaScale(d.debitAmount + d.creditAmount);
+    d.mappedHeight = Math.sqrt(area); // 高度为面积的平方根
+    d.mappedWidth = Math.sqrt(area); // 宽度为面积的平方根
+  });
+
+  return parsedData;
+}

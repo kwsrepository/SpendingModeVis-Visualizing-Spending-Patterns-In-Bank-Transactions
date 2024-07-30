@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
 import { colorMap } from '@/services/colorMapping';
 import { subCategoryMapping } from '@/services/StringMapping';
-import { mapHeight, mapWidth } from '@/services/sizeMapping';
+import { mapHeight, mapWidth, mapArea  } from '@/services/sizeMapping';
 
 export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set(), selectedMapping = 'none') {
   //console.log("EventSequenceChart data:", data);
@@ -63,6 +63,8 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     parsedData = mapHeight(parsedData);
   } else if (selectedMapping === 'width') {
     parsedData = mapWidth(parsedData);
+  } else if (selectedMapping === 'area') {
+    parsedData = mapArea(parsedData);
   }
 
   const nestedData = d3.group(parsedData, d => d.date);
@@ -90,7 +92,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
       .style('opacity', d => selectedCategories.has(d.subCategory) ? 1 : 0.1);
   }
 
-  const margin = { top: 20, right: 120, bottom: 20, left: 200 };
+  const margin = { top: 20, right: 320, bottom: 20, left: 200 };
   // const containerWidth = document.getElementById('event-sequence').clientWidth  || 700;
   const dayHeight = 20;
   const cellWidth = 15;
@@ -99,11 +101,11 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   const totalWidth = d3.max(useDates.map(date => {
     const transactions = nestedData.get(date) || [];
-    const widths = transactions.map(t => selectedMapping === 'width' ? t.mappedWidth || cellWidth : cellWidth);
+    const widths = transactions.map(t => selectedMapping === 'width' || selectedMapping === 'area' ? t.mappedWidth || cellWidth : cellWidth);
     return widths.reduce((acc, w) => acc + w, 0);
   })) + margin.left + margin.right;
 
-  const containerHeight = Math.max((useDates.length + 15) * (dayHeight + 1.8) + margin.top + margin.bottom, 800);
+  const containerHeight = Math.max((useDates.length + 300) * (dayHeight + 5) + margin.top + margin.bottom, 800);
   // console.log("useDates length:", useDates.length);
   // console.log("Calculated containerHeight:", containerHeight);
 
@@ -131,6 +133,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     });
 
   d3.select("#event-sequence svg").remove();
+
   const svg = d3.select("#event-sequence")
     .append("svg")
     .attr("width", `${totalWidth}px`)
@@ -173,8 +176,8 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).substring(0, 2);
 
     const transactions = nestedData.get(date) || [];
-    const maxRectHeight = selectedMapping === 'height' ? d3.max(transactions, d => d.mappedHeight) || dayHeight : dayHeight;
-    const rowHeight = selectedMapping === 'height' ? maxRectHeight + 2 : dayHeight; // 增加一些间隔
+    const maxRectHeight = (selectedMapping === 'height' || selectedMapping === 'area') ? d3.max(transactions, d => d.mappedHeight) || dayHeight : dayHeight;
+    const rowHeight = (selectedMapping === 'height' || selectedMapping === 'area') ? maxRectHeight + 2 : dayHeight; // 增加一些间隔
 
     const g = svg.append("g")
       .attr("transform", `translate(0, ${index})`);
@@ -199,7 +202,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .enter()
         .append("rect")
         .attr("x", (d, i) => {
-          if (selectedMapping === 'width') {
+          if (selectedMapping === 'width' || selectedMapping === 'area') {
             const widths = transactions.slice(0, i).map(t => t.mappedWidth || cellWidth);
             return widths.reduce((acc, w) => acc + w, -20);
           } else {
@@ -207,8 +210,8 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
           }
         })
         .attr("y", 0)
-        .attr("width", d => selectedMapping === 'width' ? d.mappedWidth : cellWidth)
-        .attr("height", d => selectedMapping === 'height' ? d.mappedHeight : dayHeight - 2)
+        .attr("width", d => selectedMapping === 'width' || selectedMapping === 'area' ? d.mappedWidth : cellWidth)
+        .attr("height", d => selectedMapping === 'height' || selectedMapping === 'area' ? d.mappedHeight : dayHeight - 2)
         .attr("class", "event-rect")
         .attr("fill", d => color(d.subCategory))
         .on('mouseover', function(event, d) {

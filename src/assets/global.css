@@ -7,7 +7,8 @@ body {
 }
 
 #event-sequence {
-    /*border-right: 2px solid #E4E4E4;*/
+    overflow: auto;
+    white-space: nowrap; /* 确保横向滚动 */
 }
 
 .text-style {

@@ -66,7 +66,7 @@
               <span class="custom-active-action">🌙</span>
             </template>
           </el-switch>
-          <div id="select_box">
+          <div class="select_box">
             <el-select v-model="selectedAlgorithm" placeholder="Select Algorithm">
               <el-option label="Levenshtein" value="levenshtein"></el-option>
               <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
@@ -74,14 +74,14 @@
               <el-option label="Jaro-Winkler" value="jaro-winkler"></el-option>
             </el-select>
           </div>
+          <div class="select_box">
+            <el-select v-model="selectedMapping" placeholder="Select Mapping">
+              <el-option label="Do Not Map" :value="'none'"></el-option>
+              <el-option label="Map Height" :value="'height'"></el-option>
+              <el-option label="Map Width" :value="'width'"></el-option>
+            </el-select>
+          </div>
         </div>
-        <div>
-          <el-select v-model="useMappedHeight" placeholder="Select Height Mapping">
-            <el-option label="Map Height" :value="true"></el-option>
-            <el-option label="Do Not Map Height" :value="false"></el-option>
-          </el-select>
-        </div>
-
       </div>
       <div id="similar-list">
         <top-similar-list
@@ -161,7 +161,8 @@ export default {
     const selectedKeys = ref([]);
     const legendTree = ref(null);
     const containerRef = ref(null);
-    const useMappedHeight = ref(false);
+    // const useMappedHeight = ref(false);
+    const selectedMapping = ref('none');
 
 
     const detailVisible = ref(false);
@@ -207,7 +208,7 @@ export default {
       const data = await loadData();
       jsonData.value = data.jsonData;
       worksheet.value = data.worksheet;
-      const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDatesValue, selectedCategories.value, useMappedHeight.value);
+      const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDatesValue, selectedCategories.value, selectedMapping.value);
       dailySequences.value = result.dailySequences;
       dailyAmounts.value = result.dailyAmounts;
       // console.log("dailyAmounts:", dailyAmounts);
@@ -313,7 +314,7 @@ export default {
       const selected = new Set(checkedNodes.filter(node => node.children == null).map(node => node.label));
       selectedCategories.value = selected;
       legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
-      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, useMappedHeight.value);
+      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
     };
 
     const showDetail = (event) => {
@@ -344,12 +345,17 @@ export default {
       detailVisible.value = false;
     };
 
-    watch(useMappedHeight, () => {
+    // watch(useMappedHeight, () => {
+    //   fetchData(showAllDates.value).then(() => {
+    //     legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
+    //   });
+    // });
+
+    watch(selectedMapping, () => {
       fetchData(showAllDates.value).then(() => {
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
       });
     });
-
 
 
     onMounted(() => {
@@ -362,7 +368,7 @@ export default {
         selectedKeys.value = allKeys; // 初始状态下保存所有键值
 
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
-        const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, useMappedHeight.value);
+        const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
         dailySequences.value = result.dailySequences;
         yearPositions.value = result.yearPositions;
         // console.log("dailySequences in onMounted:", dailySequences.value);
@@ -381,7 +387,7 @@ export default {
     watch(showAllDates, (newVal) => {
       fetchData(newVal).then(() => {
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
-        EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, useMappedHeight.value);
+        EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
       });
     });
 
@@ -413,14 +419,14 @@ export default {
       selectedCategories.value = new Set(legendData.value[0].children.flatMap(child => child.children.map(subChild => subChild.label)));
       legendTree.value.setCheckedKeys(allKeys);
       selectedKeys.value = allKeys; // 更新所有选中的键值
-      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, useMappedHeight.value);
+      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
     };
 
     const clearAll = () => {
       selectedCategories.value = new Set();
       legendTree.value.setCheckedKeys([]);
       selectedKeys.value = []; // 清空选中的键值
-      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, useMappedHeight.value);
+      EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
     };
 
     const handleYearClick = (event) => {
@@ -442,7 +448,7 @@ export default {
       showAllDates,
       isDarkMode,
       selectedAlgorithm,
-      useMappedHeight,
+      selectedMapping,
       updateTopSimilarSequences,
       selectAll,
       clearAll,
@@ -530,7 +536,7 @@ export default {
   border-radius: 20px;
 }
 
-#select_box {
+.select_box {
   margin-top: 10px;
 }
 </style>

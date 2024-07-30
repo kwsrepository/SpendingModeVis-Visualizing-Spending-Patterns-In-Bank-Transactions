@@ -12,19 +12,20 @@ export function mapHeight(parsedData) {
     d.mappedHeight = heightScale(d.debitAmount + d.creditAmount);
   });
 
-
   return parsedData;
 }
 
-//
-// export function mapWidth(amount) {
-//   return amount * 0.1; // 你可以根据实际需要调整映射比例
-// }
-//
-// export function mapArea(amount) {
-//   return Math.sqrt(amount) * 0.1; // 你可以根据实际需要调整映射比例
-// }
-//
-// export function noMapping() {
-//   return 15; // 保持现状，方格宽度/高度为 15
-// }
+export function mapWidth(parsedData) {
+  const maxTransactionValue = d3.max(parsedData, d => d.debitAmount + d.creditAmount);
+
+  const widthScale = d3.scaleLinear()
+    .domain([0, maxTransactionValue])
+    .range([10, 600]);  // 可以根据需要调整范围
+
+  // Update each transaction's width
+  parsedData.forEach(d => {
+    d.mappedWidth = widthScale(d.debitAmount + d.creditAmount);
+  });
+
+  return parsedData;
+}

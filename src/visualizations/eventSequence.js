@@ -99,12 +99,6 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   let useDates = showAllDates ? allDates : Array.from(nestedData.keys());
 
-  const totalWidth = d3.max(useDates.map(date => {
-    const transactions = nestedData.get(date) || [];
-    const widths = transactions.map(t => selectedMapping === 'width' || selectedMapping === 'area' ? t.mappedWidth || cellWidth : cellWidth);
-    return widths.reduce((acc, w) => acc + w, 0);
-  })) + margin.left + margin.right;
-
   const containerHeight = Math.max((useDates.length + 300) * (dayHeight + 5) + margin.top + margin.bottom, 800);
   // console.log("useDates length:", useDates.length);
   // console.log("Calculated containerHeight:", containerHeight);
@@ -136,7 +130,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   const svg = d3.select("#event-sequence")
     .append("svg")
-    .attr("width", `${totalWidth}px`)
+    .attr("width", 800)
     .attr("height", containerHeight)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`)
@@ -163,7 +157,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .append("text")
         .attr("class", "year-label")
         .attr("id", `year-${year}`) // 添加锚点ID
-        .attr("x", -90)
+        .attr("x", -135)
         .attr("y", dayHeight / 2)
         .attr("dy", "0.35em")
         .attr("text-anchor", "start")
@@ -204,12 +198,20 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         .attr("x", (d, i) => {
           if (selectedMapping === 'width' || selectedMapping === 'area') {
             const widths = transactions.slice(0, i).map(t => t.mappedWidth || cellWidth);
-            return widths.reduce((acc, w) => acc + w, -20);
+            return widths.reduce((acc, w) => acc + w, -80);
           } else {
-            return i * cellWidth - 20;
+            return i * cellWidth - 80;
           }
         })
-        .attr("y", 0)
+        .attr("y", d => {
+          if (selectedMapping === 'height') {
+            return maxRectHeight - d.mappedHeight; // 底部对齐
+          } else if (selectedMapping === 'area') {
+            return (maxRectHeight - d.mappedHeight) / 2; // 中心对齐
+          } else {
+            return 0; // 顶部对齐
+          }
+        })
         .attr("width", d => selectedMapping === 'width' || selectedMapping === 'area' ? d.mappedWidth : cellWidth)
         .attr("height", d => selectedMapping === 'height' || selectedMapping === 'area' ? d.mappedHeight : dayHeight - 2)
         .attr("class", "event-rect")
@@ -222,26 +224,30 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
         });
     }
 
+    const textYOffset = (selectedMapping === 'height')
+      ? maxRectHeight
+      : (selectedMapping === 'area' ? maxRectHeight / 2 : dayHeight / 2);
+
     g.append("text")
       .attr("class", "text-style")
-      .attr("x", -90)
-      .attr("y", maxRectHeight / 2)
-      .attr("dy", "0.35em")
+      .attr("x", -135)
+      .attr("y", textYOffset)
+      .attr("dy", selectedMapping === 'height' ? null : "0.35em")
       .attr("text-anchor", "start")
       .text(date.slice(5)); // 只输出 "MM-DD"
 
     g.append("rect")
-      .attr("x", -150)
-      .attr("y", maxRectHeight / 2 - 10)
+      .attr("x", -185)
+      .attr("y", textYOffset - 10)
       .attr("width", 60)
       .attr("height", 20)
       .attr("fill", "none");
 
     g.append("text")
       .attr("class", "text-style")
-      .attr("x", -130)
-      .attr("y", maxRectHeight / 2)
-      .attr("dy", "0.35em")
+      .attr("x", -160)
+      .attr("y", textYOffset)
+      .attr("dy", selectedMapping === 'height' ? null : "0.35em")
       .attr("text-anchor", "middle")  // 中心对齐
       .text(dayOfWeek);
 
@@ -274,4 +280,3 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
   // console.log("dailyAmounts:", dailyAmounts);
   return { dailySequences, dailyAmounts, yearPositions };
 }
-

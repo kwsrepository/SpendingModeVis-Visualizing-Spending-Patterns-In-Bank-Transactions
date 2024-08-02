@@ -31,6 +31,9 @@
           </template>
         </el-anchor>
       </el-col>
+      <div class="mapping-legend">
+
+      </div>
     </el-main>
     <el-main class="down-half-page">
       <div id="user-option">
@@ -474,14 +477,15 @@ export default {
   max-width: 600px;
   height: 100%;
   overflow-y: auto;
-  width: 300px;
-  padding-right: 30px;
+  width: 280px;
+  /*padding-right: 30px;*/
   border-right: 2px solid #E4E4E4;
   background-color: inherit;  /* 继承父容器的背景色 */
 }
 
 .custom-tree >>> .el-tree-node__content {
   height: 16px; /* 每个树节点内容的高度 */
+  font-size: 12px;
 }
 
 #user-option{

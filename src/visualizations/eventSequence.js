@@ -99,7 +99,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   let useDates = showAllDates ? allDates : Array.from(nestedData.keys());
 
-  const containerHeight = Math.max((useDates.length + 300) * (dayHeight + 5) + margin.top + margin.bottom, 800);
+  const containerHeight = Math.max((useDates.length + 300) * (dayHeight + 25) + margin.top + margin.bottom, 800);
   // console.log("useDates length:", useDates.length);
   // console.log("Calculated containerHeight:", containerHeight);
 
@@ -130,7 +130,7 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   const svg = d3.select("#event-sequence")
     .append("svg")
-    .attr("width", 800)
+    .attr("width", 750)
     .attr("height", containerHeight)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`)

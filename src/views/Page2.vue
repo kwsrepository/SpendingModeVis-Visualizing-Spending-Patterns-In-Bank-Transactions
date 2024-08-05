@@ -15,25 +15,26 @@
       <el-scrollbar ref="containerRef">
         <div id="event-sequence" style="overflow-y: auto;" @click="showDetail"></div>
       </el-scrollbar>
-      <el-col :span="6">
-        <el-anchor
-          :container="containerRef"
-          direction="vertical"
-          type="default"
-          :offset="30"
-          @click="handleYearClick"
-        >
-          <template v-for="year in Object.keys(yearPositions).reverse()" :key="year">
-            <el-anchor-link
-              :href="`#year-${year}`"
-              :title="`Year ${year}`"
-            />
-          </template>
-        </el-anchor>
-      </el-col>
-      <div class="mapping-legend">
-
+      <div style="width: 100px;">
+        <el-col :span="6">
+          <el-anchor
+            :container="containerRef"
+            direction="vertical"
+            type="default"
+            :offset="30"
+            @click="handleYearClick"
+            style="width: 100px;"
+          >
+            <template v-for="year in Object.keys(yearPositions).reverse()" :key="year">
+              <el-anchor-link
+                :href="`#year-${year}`"
+                :title="`Year ${year}`"
+              />
+            </template>
+          </el-anchor>
+        </el-col>
       </div>
+      <div class="mapping-legend"></div>
     </el-main>
     <el-main class="down-half-page">
       <div id="user-option">
@@ -114,8 +115,10 @@
 </template>
 
 <script>
+import * as d3 from 'd3';
 import { onMounted, ref, watch } from 'vue';
 import { EventSequenceChart } from '@/visualizations/eventSequence';
+import { HeightLegendChart, WidthLegendChart, AreaLegendChart } from '@/visualizations/mappingLegend';
 import { loadData } from '@/services/DataService';
 import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
@@ -346,9 +349,23 @@ export default {
       detailVisible.value = false;
     };
 
-    watch(selectedMapping, () => {
+    watch(selectedMapping, (newMapping) => {
       fetchData(showAllDates.value).then(() => {
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
+
+        // 清空旧图例
+        d3.select('.mapping-legend').selectAll('*').remove();
+
+        if (newMapping === 'height') {
+          HeightLegendChart('.mapping-legend');
+        } else if (newMapping === 'width') {
+          WidthLegendChart('.mapping-legend');
+        } else if (newMapping === 'area') {
+          AreaLegendChart('.mapping-legend');
+        } else {
+          console.log('did not select amount mapping mode');
+        }
+
       });
     });
 
@@ -366,6 +383,16 @@ export default {
         dailySequences.value = result.dailySequences;
         yearPositions.value = result.yearPositions;
         // console.log("dailySequences in onMounted:", dailySequences.value);
+
+        // 绘制初始图例（如果映射选择为“height”）
+        if (selectedMapping.value === 'height') {
+          HeightLegendChart('.mapping-legend'); // 传入图例的容器选择器
+        } else if (selectedMapping.value === 'width') {
+          WidthLegendChart('.mapping-legend');
+        } else if (selectedMapping.value === 'area') {
+          AreaLegendChart('.mapping-legend');
+        }
+
       });
     });
 

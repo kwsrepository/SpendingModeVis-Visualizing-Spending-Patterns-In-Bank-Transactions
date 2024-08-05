@@ -59,13 +59,25 @@ body {
 
 svg {
     width: 100%;
-    /*height: fit-content;*/
+    height: 100%;
     border: none;
 }
 
 #app {
     display: flex;
     width: 100%;
+}
+
+.mapping-legend {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    /*overflow-y: auto; !* 允许垂直滚动 *!*/
+    width: auto; /* 确保图例的宽度与容器一致 */
+}
+
+.label-layer-0, .label-layer-1, .label-layer-2, .label-layer-3, .label-layer-4 {
+    fill: var(--text-color);
 }
 
 .toggle-button {
@@ -152,12 +164,13 @@ svg {
     --month-header-color: #555555;
 }
 
-.text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description, #algorithm-process {
+.text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description,
+#algorithm-process, .mapping-legend {
     fill: var(--text-color);
     color: var(--text-color);
 }
 
-.el-container, .el-anchor__list {
+.el-container, .el-anchor__list, .mapping-legend {
     background-color: var(--bg-color);
 }
 

@@ -87,6 +87,12 @@
             </el-select>
           </div>
         </div>
+        <div class="radio-group">
+          <el-radio-group v-model="selectedOption" @change="handleOptionChange">
+            <el-radio-button value="category">Category Similarity</el-radio-button>
+            <el-radio-button value="amount">Amount Similarity</el-radio-button>
+          </el-radio-group>
+        </div>
       </div>
       <div id="similar-list">
         <top-similar-list
@@ -107,7 +113,9 @@
       :visible="detailVisible"
       :details="selectedDetails"
       :dailySequences="dailySequences"
+      :dailyAmounts="dailyAmounts"
       :algorithm="selectedAlgorithm"
+      :selectedOption="selectedOption"
       @close="closeDetail"
       @update-top-similar-sequences="handleUpdateTopSimilarSequences"
     ></transaction-similarity>
@@ -122,11 +130,11 @@ import { HeightLegendChart, WidthLegendChart, AreaLegendChart } from '@/visualiz
 import { loadData } from '@/services/DataService';
 import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
-import { findTopSimilarSequences } from '@/services/sequenceSimilarity';
+import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import '@/assets/global.css';
-import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption } from 'element-plus';
+import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadioButton } from 'element-plus';
 
 export default {
   name: 'Page2',
@@ -145,6 +153,8 @@ export default {
     ElCol,
     ElSelect,
     ElOption,
+    ElRadioGroup,
+    ElRadioButton,
   },
   setup() {
     const showAllDates = ref(false);
@@ -190,6 +200,7 @@ export default {
     const topSimilarSequences = ref([]);
     const listAmounts = ref({});
     const yearPositions = ref({});
+    const selectedOption = ref('category');
 
     const algorithmDescriptions = {
       'levenshtein': '<strong>Levenshtein Distance</strong>: Measures how many single-character edits (<span class = "key-words">insertions</span>, <span class = "key-words">deletions</span>, or <span class = "key-words">substitutions</span>) are needed to change one string into another.',
@@ -235,28 +246,47 @@ export default {
         // console.log("Selected Sequence:", selectedSequence);
 
         if (selectedSequence) {
-          const targetSequence = { date: selectedSequenceDate, sequence: selectedSequence };
+          const targetSequence = {
+            date: selectedSequenceDate,
+            sequence: selectedSequence,
+            debitAmounts: dailyAmounts.value[selectedSequenceDate].debitAmounts,
+            creditAmounts: dailyAmounts.value[selectedSequenceDate].creditAmounts
+          };
+
           const allSequences = Object.keys(dailySequences.value)
             .filter(date => date !== selectedSequenceDate) // 排除所选序列的日期
             .map(date => ({
               date,
-              sequence: dailySequences.value[date]
+              sequence: dailySequences.value[date],
+              debitAmounts: dailyAmounts.value[date].debitAmounts,
+              creditAmounts: dailyAmounts.value[date].creditAmounts
             }));
 
           // console.log("All Sequences for Comparison:", allSequences);
 
-          topSimilarSequences.value = findTopSimilarSequences(targetSequence, allSequences, selectedAlgorithm.value);
+          if (selectedOption.value === 'category') {
+            topSimilarSequences.value = findTopSimilarSequences(targetSequence, allSequences, selectedAlgorithm.value);
+            // console.log("Top Similar Sequences:", topSimilarSequences.value);
+            // 这里取到的topSimilarSequences不是真的最相似序列list的信息，只是取了数据集中最晚的10个日期
+            // 在后面的handleUpdateTopSimilarSequences中才取到了真正的topSimilarSequences
+          } else if (selectedOption.value === 'amount') {
+            topSimilarSequences.value = findTopSimilarSequencesByAmount(targetSequence, allSequences);
+          }
           // console.log("Top Similar Sequences:", topSimilarSequences.value);
-          // 这里取到的topSimilarSequences不是真的最相似序列list的信息，只是取了数据集中最晚的10个日期
-          // 在后面的handleUpdateTopSimilarSequences中才取到了真正的topSimilarSequences
         }
       } else {
         console.error("Selected Details do not have the expected structure:", selectedDetails.value);
       }
     };
 
+    watch(selectedOption, () => {
+      if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
+        updateTopSimilarSequences();
+      }
+    });
+
     watch(selectedDetails, () => {
-      console.log("selectedDetails changed:", selectedDetails.value);
+      // console.log("selectedDetails changed:", selectedDetails.value);
       updateTopSimilarSequences();
     });
 
@@ -281,6 +311,12 @@ export default {
         // console.log("listAmounts:", listAmounts.value);
       }
     });
+
+    // watch(selectedOption, () => {
+    //   if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
+    //     updateTopSimilarSequences();
+    //   }
+    // });
 
     const handleSelectSimilarSequence = (sequenceDetails) => {
       selectedSimilarDetails.value = sequenceDetails;
@@ -470,6 +506,7 @@ export default {
       isDarkMode,
       selectedAlgorithm,
       selectedMapping,
+      selectedOption,
       updateTopSimilarSequences,
       selectAll,
       clearAll,

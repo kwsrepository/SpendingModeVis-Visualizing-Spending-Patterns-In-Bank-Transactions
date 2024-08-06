@@ -26,11 +26,11 @@
 <script>
 import { ref, watch, nextTick } from 'vue';
 import { ElTabs, ElTabPane, ElButton, ElBacktop } from 'element-plus';
-import { findTopSimilarSequences } from '@/services/sequenceSimilarity';
+import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
 import YearView from './YearView.vue';
-// import TopSimilarList from './topSimilarList.vue';
 import MonthView from './MonthView.vue';
 import '@/assets/global.css';
+// import TopSimilarList from './topSimilarList.vue';
 
 export default {
   name: 'TransactionSimilarity',
@@ -55,7 +55,15 @@ export default {
       type: Object,
       required: true
     },
+    dailyAmounts: {
+      type: Object,
+      required: true
+    },
     algorithm: {
+      type: String,
+      required: true
+    },
+    selectedOption: {
       type: String,
       required: true
     }
@@ -136,12 +144,29 @@ export default {
       if (props.details && props.details.date) {
         const dateMatch = props.details.date; // 获取日期
         const selectedSequence = props.dailySequences[dateMatch];
+
         if (selectedSequence) {
           const allSequences = Object.keys(props.dailySequences).map(date => ({
             date,
-            sequence: props.dailySequences[date]
+            sequence: props.dailySequences[date],
+            debitAmounts: props.dailyAmounts[date].debitAmounts,  // 使用传入的 dailyAmounts
+            creditAmounts: props.dailyAmounts[date].creditAmounts // 使用传入的 dailyAmounts
           }));
-          topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
+
+          if (props.selectedOption === 'category') {
+            topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
+          } else if (props.selectedOption === 'amount') {
+            // 使用基于金额的相似度计算函数
+            const targetSequence = {
+              date: dateMatch,
+              sequence: selectedSequence,
+              debitAmounts: props.dailyAmounts[dateMatch].debitAmounts, // 使用传入的 dailyAmounts
+              creditAmounts: props.dailyAmounts[dateMatch].creditAmounts // 使用传入的 dailyAmounts
+            };
+
+            topSimilarSequences.value = findTopSimilarSequencesByAmount(targetSequence, allSequences);
+          }
+
           similarDates.value = topSimilarSequences.value.map(seq => seq.date);
           highlightDates();
           emit('update-top-similar-sequences', topSimilarSequences.value);
@@ -152,6 +177,7 @@ export default {
 
     watch(() => props.details, updateSimilarSequences);
     watch(() => props.algorithm, updateSimilarSequences);
+    watch(() => props.selectedOption, updateSimilarSequences);
 
     // watch(() => props.algorithm, (newAlgorithm) => {
     //   console.log("Selected Algorithm:", newAlgorithm);

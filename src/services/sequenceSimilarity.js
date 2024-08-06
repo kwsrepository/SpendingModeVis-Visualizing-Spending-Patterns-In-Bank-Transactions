@@ -190,3 +190,41 @@ export function findTopSimilarSequences(targetSequence, allSequences, algorithm 
 
   return similarities.slice(0, topN);
 }
+
+
+
+export function findTopSimilarSequencesByAmount(targetSequence, allSequences, topN = 10) {
+  // console.log('调用了基于amount的相似序列计算函数findTopSimilarSequencesByAmount()');
+  const { debitAmounts: targetDebits, creditAmounts: targetCredits } = targetSequence;
+
+  const similarities = allSequences.map(seq => {
+    const { debitAmounts, creditAmounts } = seq;
+
+    // 使用欧几里得距离计算相似度
+    const distance = calculateAmountSimilarity(targetDebits, debitAmounts, targetCredits, creditAmounts);
+
+    return {
+      date: seq.date,
+      sequence: seq.sequence,
+      similarity: -distance  // 距离越小，相似度越高
+    };
+  });
+
+  similarities.sort((a, b) => b.similarity - a.similarity);
+  console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
+
+  return similarities.slice(0, topN);
+}
+
+function calculateAmountSimilarity(targetDebits, debits, targetCredits, credits) {
+  const length = Math.min(targetDebits.length, debits.length, targetCredits.length, credits.length);
+
+  let sum = 0;
+  for (let i = 0; i < length; i++) {
+    const debitDiff = targetDebits[i] - debits[i];
+    const creditDiff = targetCredits[i] - credits[i];
+    sum += Math.sqrt(debitDiff * debitDiff + creditDiff * creditDiff);
+  }
+
+  return sum / length;  // 平均距离
+}

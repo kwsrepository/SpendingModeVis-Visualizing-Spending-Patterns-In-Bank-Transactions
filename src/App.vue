@@ -1,17 +1,20 @@
 <template>
   <el-container>
-    <el-aside :width="sidebarVisible ? '200px' : '0px'">
-        <div class="toggle-button" @click="toggleSidebar">
-          <span v-html="sidebarVisible ? '&lt;' : '&gt;'"></span>
-        </div>
+<!--    <el-aside :width="sidebarVisible ? '200px' : '0px'">-->
+<!--        <div class="toggle-button" @click="toggleSidebar">-->
+<!--          <span v-html="sidebarVisible ? '&lt;' : '&gt;'"></span>-->
+<!--        </div>-->
 
-        <div :class="['sidebar', { hidden: !sidebarVisible }]">
-          <router-link to="/page1" class="tab-link" active-class="active">Recreate Fig 1</router-link>
-          <router-link to="/page2" class="tab-link" active-class="active">Event Sequence 1</router-link>
-          <router-link to="/page3" class="tab-link" active-class="active">(color wheel)</router-link>
-          <router-link to="/page4" class="tab-link" active-class="active">Page 4</router-link>
-        </div>
-    </el-aside>
+<!--        <div :class="['sidebar', { hidden: !sidebarVisible }]">-->
+<!--          <router-link to="/page1" class="tab-link" active-class="active">Recreate Fig 1</router-link>-->
+<!--          <router-link to="/page2" class="tab-link" active-class="active">Event Sequence 1</router-link>-->
+<!--          <router-link to="/page3" class="tab-link" active-class="active">(color wheel)</router-link>-->
+<!--          <router-link to="/page4" class="tab-link" active-class="active">Page 4</router-link>-->
+<!--        </div>-->
+<!--    </el-aside>-->
+
+    <router-link to="/page2" class="tab-link" active-class="active"></router-link>
+
     <el-container>
       <router-view></router-view>
     </el-container>
@@ -20,13 +23,13 @@
 </template>
 
 <script>
-import { ElContainer, ElAside } from 'element-plus'
-// , ElHeader, ElMain
+import { ElContainer } from 'element-plus'
+// , ElHeader, ElMain, ElAside
 
 export default {
   components: {
     ElContainer,
-    ElAside,
+    // ElAside,
     // ElHeader,
     // ElMain,
   },

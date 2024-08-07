@@ -325,9 +325,9 @@ export function WidthLegendChart(containerSelector) {
 
 
 export function AreaLegendChart(containerSelector) {
-  const width = 400; // 画布宽度
+  const width = 340; // 画布宽度
   const height = 400; // 画布高度
-  const margin = { top: 40, right: 20, bottom: 50, left: 60 };
+  const margin = { top: 40, right: 0, bottom: 50, left: 60 };
 
   // 创建 SVG 元素
   const svg = d3.select(containerSelector)
@@ -395,7 +395,7 @@ export function AreaLegendChart(containerSelector) {
   // 初始偏移量
   let xOffset = 0;
   let yOffset = 0;
-  const padding = 25; // 方块之间的间距
+  const padding = 20; // 方块之间的间距
 
   // 绘制正方形
   squares.forEach((square, index) => {

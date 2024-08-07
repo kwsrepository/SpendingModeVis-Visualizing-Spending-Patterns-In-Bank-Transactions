@@ -9,7 +9,27 @@ body {
 #event-sequence {
     overflow: auto;
     white-space: nowrap; /* 确保横向滚动 */
+    position: relative;
 }
+
+.switch-fixed {
+    position: absolute;
+    top: 10px;
+    right: 3px;
+    z-index: 100;      /* 确保在滚动条和其他内容之上 */
+}
+
+.radio-container {
+    margin-top: 10px;
+}
+
+.radio-group-vertical {
+    display: flex;
+    flex-direction: column; /* 纵向排列 */
+    align-items: flex-start !important;
+    width: 100%;
+}
+
 
 .text-style {
     font-size: 13px;
@@ -70,7 +90,7 @@ svg {
 
 .mapping-legend {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: none;
     border-radius: 5px;
     /*overflow-y: auto; !* 允许垂直滚动 *!*/
     width: auto; /* 确保图例的宽度与容器一致 */
@@ -108,15 +128,18 @@ svg {
 }
 
 .el-button, .el-switch, .el-select {
-    font-size: 13px;
-    width: 100px;
+    font-size: 10px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    /*align-items: center;*/
+    /*justify-content: center;*/
     padding: 0;
     margin: 0;
     line-height: 1;
-    height: 30px;
+    height: 20px;
+}
+
+.algorithm_box {
+    width: 100px;
 }
 
 #similar-list {

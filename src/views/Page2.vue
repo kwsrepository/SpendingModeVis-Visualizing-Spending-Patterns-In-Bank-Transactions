@@ -14,6 +14,24 @@
       />
       <el-scrollbar ref="containerRef">
         <div id="event-sequence" style="overflow-y: auto;" @click="showDetail"></div>
+        <div class="switch-fixed">
+          <el-switch
+            v-model="showAllDates"
+            class="ml-2"
+            inline-prompt
+            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+            active-text="All Dates"
+            inactive-text="Less Dates"
+          />
+          <div class="radio-container">
+            <el-radio-group v-model="selectedMapping" class="radio-group-vertical">
+              <el-radio value="none">No Amount Mapping</el-radio>
+              <el-radio value="height">Amount Map to Height</el-radio>
+              <el-radio value="width">Amount Map to Width</el-radio>
+              <el-radio value="area">Amount Map to Area</el-radio>
+            </el-radio-group>
+          </div>
+        </div>
       </el-scrollbar>
       <div style="width: 100px;">
         <el-col :span="6">
@@ -38,22 +56,12 @@
     </el-main>
     <el-main class="down-half-page">
       <div id="user-option">
-        <div>
-          <el-button @click="selectAll">Select all</el-button>
-        </div>
-        <div>
-          <el-button @click="clearAll">Clear</el-button>
-        </div>
-        <div>
-          <el-switch
-            v-model="showAllDates"
-            class="ml-2"
-            inline-prompt
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-            active-text="All Dates"
-            inactive-text="Less Dates"
-          />
-        </div>
+<!--        <div>-->
+<!--          <el-button @click="selectAll">Select all</el-button>-->
+<!--        </div>-->
+<!--        <div>-->
+<!--          <el-button @click="clearAll">Clear</el-button>-->
+<!--        </div>-->
         <div>
           <el-switch
             v-model="isDarkMode"
@@ -70,28 +78,24 @@
               <span class="custom-active-action">🌙</span>
             </template>
           </el-switch>
-          <div class="select_box">
-            <el-select v-model="selectedAlgorithm" placeholder="Select Algorithm">
-              <el-option label="Levenshtein" value="levenshtein"></el-option>
-              <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
-              <el-option label="Hamming" value="hamming"></el-option>
-              <el-option label="Jaro-Winkler" value="jaro-winkler"></el-option>
-            </el-select>
-          </div>
-          <div class="select_box">
-            <el-select v-model="selectedMapping" placeholder="Select Mapping">
-              <el-option label="Do Not Map" :value="'none'"></el-option>
-              <el-option label="Map Height" :value="'height'"></el-option>
-              <el-option label="Map Width" :value="'width'"></el-option>
-              <el-option label="Map to Area" value="area"></el-option>
-            </el-select>
-          </div>
         </div>
         <div class="radio-group">
-          <el-radio-group v-model="selectedOption" @change="handleOptionChange">
-            <el-radio-button value="category">Category Similarity</el-radio-button>
-            <el-radio-button value="amount">Amount Similarity</el-radio-button>
+          <el-radio-group v-model="selectedOption" @change="handleOptionChange" class="radio-group-vertical">
+            <el-radio value="category">Category Similarity</el-radio>
+            <el-radio value="amount">Amount Similarity</el-radio>
           </el-radio-group>
+        </div>
+        <div class="algorithm_box">
+          <el-select
+            v-model="selectedAlgorithm"
+            placeholder="Select Algorithm"
+            :disabled="selectedOption === 'amount'"
+          >
+            <el-option label="Levenshtein" value="levenshtein"></el-option>
+            <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
+            <el-option label="Hamming" value="hamming"></el-option>
+            <el-option label="Jaro-Winkler" value="jaro-winkler"></el-option>
+          </el-select>
         </div>
       </div>
       <div id="similar-list">
@@ -102,8 +106,8 @@
           @select-similar-sequence="handleSelectSimilarSequence"
         />
       </div>
-      <div id="algorithm-details">
-        <div id="algorithm-description" v-html="selectedDescription"></div>
+      <div id="algorithm-details"  v-if="selectedOption === 'category'">
+        <div id="algorithm-description" v-html="selectedDescription" v-if="selectedOption === 'category'"></div>
         <div id="algorithm-process">
           <algorithm-process :details="selectedDetails" :similarDetails="selectedSimilarDetails"></algorithm-process>
         </div>
@@ -134,12 +138,13 @@ import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/serv
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import '@/assets/global.css';
-import { ElButton, ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadioButton } from 'element-plus';
+import { ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadio } from 'element-plus';
+// ElButton,
 
 export default {
   name: 'Page2',
   components: {
-    ElButton,
+    // ElButton,
     ElSwitch,
     ElContainer,
     ElMain,
@@ -154,7 +159,7 @@ export default {
     ElSelect,
     ElOption,
     ElRadioGroup,
-    ElRadioButton,
+    ElRadio,
   },
   setup() {
     const showAllDates = ref(false);
@@ -556,7 +561,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  /*align-items: center;*/
   gap: 10px;
   height: 100%;
   margin-left: 10px;
@@ -583,7 +588,7 @@ export default {
 
 .el-switch {
   display: inline-flex;
-  align-items: center;
+  /*align-items: center;*/
   justify-content: center;
   width: 100px;
   height: 25px;
@@ -595,8 +600,5 @@ export default {
   border-radius: 20px;
 }
 
-.select_box {
-  margin-top: 10px;
-}
 </style>
 

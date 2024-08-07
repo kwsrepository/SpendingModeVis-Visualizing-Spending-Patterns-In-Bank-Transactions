@@ -194,37 +194,84 @@ export function findTopSimilarSequences(targetSequence, allSequences, algorithm 
 
 
 export function findTopSimilarSequencesByAmount(targetSequence, allSequences, topN = 10) {
-  // console.log('调用了基于amount的相似序列计算函数findTopSimilarSequencesByAmount()');
-  const { debitAmounts: targetDebits, creditAmounts: targetCredits } = targetSequence;
+  // 新建一个变量，用于存储 targetSequence 的新数组
+  const targetAmounts = targetSequence.creditAmounts.map((credit, index) => {
+    // 将 creditAmounts 和 debitAmounts 中的值相加
+    return credit + targetSequence.debitAmounts[index];
+  });
 
-  const similarities = allSequences.map(seq => {
-    const { debitAmounts, creditAmounts } = seq;
-
-    // 使用欧几里得距离计算相似度
-    const distance = calculateAmountSimilarity(targetDebits, debitAmounts, targetCredits, creditAmounts);
+  // 遍历所有待比较的序列，创建新数组
+  const allSequenceAmounts = allSequences.map(seq => {
+    // 对于每个序列，创建一个新的数组，类似于 targetAmounts 的处理
+    const newAmounts = seq.creditAmounts.map((credit, index) => {
+      // 将 creditAmounts 和 debitAmounts 中的值相加
+      return credit + seq.debitAmounts[index];
+    });
 
     return {
-      date: seq.date,
-      sequence: seq.sequence,
-      similarity: -distance  // 距离越小，相似度越高
+      date: seq.date, // 保留日期信息以便于后续处理
+      sequence: seq.sequence, // 保留原始序列信息
+      newAmounts // 新生成的数组
     };
   });
 
+  // console.log("Target Amounts Array:", targetAmounts);
+  // console.log("All Sequence Amounts Arrays:", allSequenceAmounts);
+
+  // 计算每个序列与 targetAmounts 的相似度（欧氏距离）
+  const similarities = allSequenceAmounts.map(({ date, sequence, newAmounts }) => {
+    // 确定两个数组中较短的一个
+    const [longArray, shortArray] = targetAmounts.length >= newAmounts.length
+      ? [targetAmounts, newAmounts]
+      : [newAmounts, targetAmounts];
+
+    const lengthDifference = longArray.length - shortArray.length;
+
+    // 找出长数组中最小值的索引位置，并在短数组对应位置插入0
+    const indicesToInsertZero = [];
+    for (let i = 0; i < lengthDifference; i++) {
+      // 找出未被使用的最小值的索引位置
+      let minIndex = -1;
+      let minValue = Infinity;
+
+      for (let j = 0; j < longArray.length; j++) {
+        if (!indicesToInsertZero.includes(j) && longArray[j] < minValue) {
+          minValue = longArray[j];
+          minIndex = j;
+        }
+      }
+      indicesToInsertZero.push(minIndex);
+    }
+
+    // 在短数组中插入0
+    const extendedShortArray = [...shortArray];
+    indicesToInsertZero.forEach(index => {
+      extendedShortArray.splice(index, 0, 0); // 在指定位置插入 0
+    });
+
+    // 输出插入0之后的两个数组
+    // console.log("Long Array:", longArray);
+    // console.log("Extended Short Array:", extendedShortArray);
+
+    // 计算欧氏距离
+    const distance = Math.sqrt(
+      longArray.reduce((sum, val, index) => {
+        return sum + Math.pow(val - extendedShortArray[index], 2);
+      }, 0)
+    );
+
+    return {
+      date,
+      sequence,
+      similarity: -distance // 这里使用负距离作为相似度，越大越相似
+    };
+  });
+
+  // 按相似度排序并返回前 topN 个相似序列
   similarities.sort((a, b) => b.similarity - a.similarity);
   console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
 
   return similarities.slice(0, topN);
 }
 
-function calculateAmountSimilarity(targetDebits, debits, targetCredits, credits) {
-  const length = Math.min(targetDebits.length, debits.length, targetCredits.length, credits.length);
 
-  let sum = 0;
-  for (let i = 0; i < length; i++) {
-    const debitDiff = targetDebits[i] - debits[i];
-    const creditDiff = targetCredits[i] - credits[i];
-    sum += Math.sqrt(debitDiff * debitDiff + creditDiff * creditDiff);
-  }
-
-  return sum / length;  // 平均距离
-}

@@ -2,7 +2,7 @@
   <div v-if="visible" class="transaction-detail">
     <el-tabs type="border-card" class="custom-tabs">
       <div class="header">
-<!--        <p class="text-style">{{ details }}</p>-->
+        <!--        <p class="text-style">{{ details }}</p>-->
         <el-button @click="close" class="close-button">Close</el-button>
       </div>
       <el-tab-pane label="Month View" class="text-style">
@@ -27,6 +27,7 @@
 import { ref, watch, nextTick } from 'vue';
 import { ElTabs, ElTabPane, ElButton, ElBacktop } from 'element-plus';
 import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
+// import { segmentWidths, widthSegments } from '@/services/sizeMapping';
 import YearView from './YearView.vue';
 import MonthView from './MonthView.vue';
 import '@/assets/global.css';
@@ -146,12 +147,32 @@ export default {
         const selectedSequence = props.dailySequences[dateMatch];
 
         if (selectedSequence) {
-          const allSequences = Object.keys(props.dailySequences).map(date => ({
-            date,
-            sequence: props.dailySequences[date],
-            debitAmounts: props.dailyAmounts[date].debitAmounts,  // 使用传入的 dailyAmounts
-            creditAmounts: props.dailyAmounts[date].creditAmounts // 使用传入的 dailyAmounts
-          }));
+          // 创建 targetAmountsSum 数组
+          const targetAmountsSum = props.dailyAmounts[dateMatch].debitAmounts.map((debit, index) => {
+            return debit + props.dailyAmounts[dateMatch].creditAmounts[index];
+          });
+
+          console.log("Target Amounts Sum Array:", targetAmountsSum);
+
+          const allSequences = Object.keys(props.dailySequences).map(date => {
+            const debitAmounts = props.dailyAmounts[date].debitAmounts;
+            const creditAmounts = props.dailyAmounts[date].creditAmounts;
+
+            // 创建 amountsSum 数组
+            const amountsSum = debitAmounts.map((debit, index) => {
+              return debit + creditAmounts[index];
+            });
+
+            console.log(`Amounts Sum Array for ${date}:`, amountsSum);
+
+            return {
+              date,
+              sequence: props.dailySequences[date],
+              debitAmounts,  // 使用传入的 dailyAmounts
+              creditAmounts, // 使用传入的 dailyAmounts
+              amountsSum     // 新生成的 amountsSum 数组
+            };
+          });
 
           if (props.selectedOption === 'category') {
             topSimilarSequences.value = findTopSimilarSequences(selectedSequence, allSequences, props.algorithm);
@@ -161,7 +182,8 @@ export default {
               date: dateMatch,
               sequence: selectedSequence,
               debitAmounts: props.dailyAmounts[dateMatch].debitAmounts, // 使用传入的 dailyAmounts
-              creditAmounts: props.dailyAmounts[dateMatch].creditAmounts // 使用传入的 dailyAmounts
+              creditAmounts: props.dailyAmounts[dateMatch].creditAmounts, // 使用传入的 dailyAmounts
+              amountsSum: targetAmountsSum // 使用新生成的 targetAmountsSum 数组
             };
 
             topSimilarSequences.value = findTopSimilarSequencesByAmount(targetSequence, allSequences);
@@ -173,6 +195,7 @@ export default {
         }
       }
     };
+
 
 
     watch(() => props.details, updateSimilarSequences);
@@ -300,3 +323,4 @@ export default {
 }
 
 </style>
+

@@ -263,13 +263,13 @@ export function findTopSimilarSequencesByAmount(targetSequence, allSequences, to
     return {
       date,
       sequence,
-      similarity: -distance // 这里使用负距离作为相似度，越大越相似
+      similarity: distance // 这里使用距离作为相似度，距离越小越相似
     };
   });
 
   // 按相似度排序并返回前 topN 个相似序列
-  similarities.sort((a, b) => b.similarity - a.similarity);
-  console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
+  similarities.sort((a, b) => a.similarity - b.similarity);
+  // console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
 
   return similarities.slice(0, topN);
 }

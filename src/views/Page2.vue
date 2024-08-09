@@ -85,6 +85,7 @@
             <el-radio value="amount">Amount Similarity</el-radio>
           </el-radio-group>
         </div>
+        <el-button @click="toggleTransactionDetail" style="width: 100px;">Calendar</el-button>
         <div class="algorithm_box">
           <el-select
             v-model="selectedAlgorithm"
@@ -103,6 +104,8 @@
           :topSimilarSequences="topSimilarSequences"
           :selectedDetails="selectedDetails"
           :listAmounts="listAmounts"
+          :selectedMapping="selectedMapping"
+          :selectedOption="selectedOption"
           @select-similar-sequence="handleSelectSimilarSequence"
         />
       </div>
@@ -114,7 +117,7 @@
       </div>
     </el-main>
     <transaction-similarity
-      :visible="detailVisible"
+      :visible="showTransactionDetail"
       :details="selectedDetails"
       :dailySequences="dailySequences"
       :dailyAmounts="dailyAmounts"
@@ -138,13 +141,13 @@ import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/serv
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import '@/assets/global.css';
-import { ElSwitch, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadio } from 'element-plus';
-// ElButton,
+import { ElSwitch, ElButton, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadio } from 'element-plus';
+
 
 export default {
   name: 'Page2',
   components: {
-    // ElButton,
+    ElButton,
     ElSwitch,
     ElContainer,
     ElMain,
@@ -160,6 +163,19 @@ export default {
     ElOption,
     ElRadioGroup,
     ElRadio,
+  },
+  data() {
+    return {
+      showTransactionDetail: false
+    };
+  },
+  methods: {
+    toggleTransactionDetail() {
+      this.showTransactionDetail = !this.showTransactionDetail;
+    },
+    closeDetail() {
+      this.showTransactionDetail = false;
+    },
   },
   setup() {
     const showAllDates = ref(false);
@@ -317,12 +333,6 @@ export default {
       }
     });
 
-    // watch(selectedOption, () => {
-    //   if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
-    //     updateTopSimilarSequences();
-    //   }
-    // });
-
     const handleSelectSimilarSequence = (sequenceDetails) => {
       selectedSimilarDetails.value = sequenceDetails;
       console.log("selectedSimilarDetails:", selectedSimilarDetails.value);
@@ -386,10 +396,6 @@ export default {
       }
     };
 
-    const closeDetail = () => {
-      detailVisible.value = false;
-    };
-
     watch(selectedMapping, (newMapping) => {
       fetchData(showAllDates.value).then(() => {
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
@@ -404,7 +410,7 @@ export default {
         } else if (newMapping === 'area') {
           AreaLegendChart('.mapping-legend');
         } else {
-          console.log('did not select amount mapping mode');
+          // console.log('did not select amount mapping mode');
         }
 
       });
@@ -522,10 +528,8 @@ export default {
       renderContent,
       dailySequences,
       fetchData,
-      detailVisible,
       selectedDetails,
       showDetail,
-      closeDetail,
       handleUpdateTopSimilarSequences,
       topSimilarSequences,
       yearPositions,

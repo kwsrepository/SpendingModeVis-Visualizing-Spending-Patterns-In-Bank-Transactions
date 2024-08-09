@@ -6,7 +6,7 @@ import { mapHeight, mapWidth, mapArea  } from '@/services/sizeMapping';
 
 export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set(), selectedMapping = 'none') {
   //console.log("EventSequenceChart data:", data);
-  console.log("EventSequenceChart selectedMapping:", selectedMapping);
+  // console.log("EventSequenceChart selectedMapping:", selectedMapping);
 
   let parsedData = data.map((d, index) => {
     let cellAddress = `B${index + 2}`;

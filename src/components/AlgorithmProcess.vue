@@ -1,23 +1,22 @@
 <template>
   <div v-if="details">
-    <!--    <h3>Compare Details</h3>-->
-    <div id="sequence-visualization-container">
-      <span :class="['day-of-week', getDayClass(getDayOfWeek(details.date))]">{{ getDayOfWeek(details.date) }}</span>
-      <span class="list-date">{{ details.date }}</span>
-      <div id="sequence-visualization"></div>
-      <span class="original-sequence">{{ details.sequence }}</span>
-      <span class = "list-text">(Target Sequence) </span>
-    </div>
+<!--    <div id="sequence-visualization-container">-->
+<!--      <span :class="['day-of-week', getDayClass(getDayOfWeek(details.date))]">{{ getDayOfWeek(details.date) }}</span>-->
+<!--      <span class="list-date">{{ details.date }}</span>-->
+<!--      <div id="sequence-visualization"></div>-->
+<!--      <span class="original-sequence">{{ details.sequence }}</span>-->
+<!--      <span class = "list-text">(Target Sequence) </span>-->
+<!--    </div>-->
   </div>
-  <div v-if="similarDetails">
-    <div id="similar-sequence-visualization-container">
-      <span :class="['day-of-week', getDayClass(getDayOfWeek(similarDetails.date))]">{{ getDayOfWeek(similarDetails.date) }}</span>
-      <span class="list-date">{{ similarDetails.date }}</span>
-      <div id="similar-sequence-visualization"></div>
-      <span class="similar-sequence">{{ similarDetails.sequence }}</span>
-      <span class="list-text">(Selected Similar Sequence) </span>
-    </div>
-  </div>
+<!--  <div v-if="similarDetails">-->
+<!--    <div id="similar-sequence-visualization-container">-->
+<!--      <span :class="['day-of-week', getDayClass(getDayOfWeek(similarDetails.date))]">{{ getDayOfWeek(similarDetails.date) }}</span>-->
+<!--      <span class="list-date">{{ similarDetails.date }}</span>-->
+<!--      <div id="similar-sequence-visualization"></div>-->
+<!--      <span class="similar-sequence">{{ similarDetails.sequence }}</span>-->
+<!--      <span class="list-text">(Selected Similar Sequence) </span>-->
+<!--    </div>-->
+<!--  </div>-->
 </template>
 
 <script>

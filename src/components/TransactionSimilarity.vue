@@ -152,7 +152,7 @@ export default {
             return debit + props.dailyAmounts[dateMatch].creditAmounts[index];
           });
 
-          console.log("Target Amounts Sum Array:", targetAmountsSum);
+          // console.log("Target Amounts Sum Array:", targetAmountsSum);
 
           const allSequences = Object.keys(props.dailySequences).map(date => {
             const debitAmounts = props.dailyAmounts[date].debitAmounts;
@@ -163,7 +163,7 @@ export default {
               return debit + creditAmounts[index];
             });
 
-            console.log(`Amounts Sum Array for ${date}:`, amountsSum);
+            // console.log(`Amounts Sum Array for ${date}:`, amountsSum);
 
             return {
               date,
@@ -323,4 +323,3 @@ export default {
 }
 
 </style>
-

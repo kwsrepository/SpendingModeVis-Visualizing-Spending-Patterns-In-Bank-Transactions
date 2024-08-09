@@ -14,7 +14,8 @@
         <span :class="['day-of-week', getDayClass(getDayOfWeek(seq.date))]">{{ getDayOfWeek(seq.date) }} </span>
         <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequenceWithTooltip(seq.sequence, seq.date)"></span>
-        <span class = "list-text">(Similarity {{ seq.similarity.toFixed(2) }}%) </span>
+        <span class="list-text">{{ formattedSimilarityText(seq.similarity) }}</span>
+        <span class="amount-sum"> (Amount Array: {{ calculateAmountSum(seq.date) }}) </span>
       </li>
     </ul>
   </div>
@@ -23,6 +24,7 @@
 <script>
 import { colorMappingNew } from '@/services/colorMapping.js';
 import { charToSubCategory } from '@/services/StringMapping.js';
+import { mapHeight, mapWidth, mapArea } from '@/services/sizeMapping.js';
 import '@/assets/global.css';
 
 export default {
@@ -39,7 +41,15 @@ export default {
     listAmounts: {
       type: Object,
       required: true
-    }
+    },
+    selectedMapping: {
+      type: String,
+      required: true
+    },
+    selectedOption: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -47,14 +57,21 @@ export default {
     };
   },
   mounted() {
-    console.log('listAmounts:', this.listAmounts);
+    // console.log('listAmounts:', this.listAmounts);
+    // console.log('selectedMapping:', this.selectedMapping);
   },
   watch: {
     selectedDetails(newVal) {
       if (newVal && newVal.date && newVal.sequence) {
         this.renderedSelectedSequence = this.renderSequenceWithTooltip(newVal.sequence, newVal.date);
       }
-    }
+    },
+    selectedMapping() {
+      this.renderedSelectedSequence = this.renderSequenceWithTooltip(this.selectedDetails.sequence, this.selectedDetails.date);
+    },
+    selectedOption(newVal) {
+      console.log('selectedOption changed to:', newVal);
+    },
   },
   computed: {
     filteredTopSimilarSequences() {
@@ -67,16 +84,49 @@ export default {
       const debitAmounts = this.listAmounts[date]?.debitAmounts || [];
       const creditAmounts = this.listAmounts[date]?.creditAmounts || [];
 
-      for (let i = 0; i < sequence.length; i++) {
-        const char = sequence[i];
-        const color = colorMappingNew[char] || 'transparent';
-        const subCategory = charToSubCategory[char] || 'Unknown';
-        const debitAmount = debitAmounts[i] !== 0 ? `, Debit Amount: ${debitAmounts[i]}` : '';
-        const creditAmount = creditAmounts[i] !== 0 ? `, Credit Amount: ${creditAmounts[i]}` : '';
-        const tooltip = `Date: ${date}, Char: ${char}, SubCategory: ${subCategory}${debitAmount}${creditAmount}`;
-        result += `<span title="${tooltip}" style="display: inline-block; width: 15px; height: 18px; background-color: ${color};"></span>`;
+      // 生成交易数据数组
+      let transactions = sequence.split('').map((char, index) => {
+        return {
+          char,
+          debitAmount: debitAmounts[index] || 0,
+          creditAmount: creditAmounts[index] || 0,
+          subCategory: charToSubCategory[char] || 'Unknown'
+        };
+      });
+
+      // 根据 selectedMapping 的值应用不同的映射
+      if (this.selectedMapping === 'height') {
+        transactions = mapHeight(transactions);
+      } else if (this.selectedMapping === 'width') {
+        transactions = mapWidth(transactions);
+      } else if (this.selectedMapping === 'area') {
+        transactions = mapArea(transactions);
       }
-      result += `<span style="margin-left: 15px;">${sequence}</span>`; // 添加序列字符串
+
+      // 设置对齐方式
+      let verticalAlign = 'baseline'; // 默认对齐方式
+      if (this.selectedMapping === 'none' || this.selectedMapping === 'width' || this.selectedMapping === 'area') {
+        verticalAlign = 'middle'; // 中线对齐
+      }
+
+      // 绘制方块
+      transactions.forEach(d => {
+        const color = colorMappingNew[d.char] || 'transparent';
+
+        let tooltip = `Date: ${date}, Char: ${d.char}, SubCategory: ${d.subCategory}`;
+        if (d.debitAmount !== 0) {
+          tooltip += `, Debit Amount: ${d.debitAmount}`;
+        }
+        if (d.creditAmount !== 0) {
+          tooltip += `, Credit Amount: ${d.creditAmount}`;
+        }
+
+        const width = d.mappedWidth || 15; // 默认宽度
+        const height = d.mappedHeight || 18; // 默认高度
+        result += `<span title="${tooltip}" style="display: inline-block; width: ${width}px; height: ${height}px; background-color: ${color}; vertical-align: ${verticalAlign};"></span>`;
+      });
+
+      result += `<span style="margin-left: 15px; vertical-align: ${verticalAlign};">${sequence}</span>`; // 添加序列字符串
       return result;
     },
     getDayOfWeek(date) {
@@ -104,6 +154,20 @@ export default {
         creditAmounts: this.listAmounts[seq.date]?.creditAmounts || [],
       };
       this.$emit('select-similar-sequence', similarDetails);
+    },
+    formattedSimilarityText(similarity) {
+      if (this.selectedOption === 'category') {
+        return `(Similarity. ${similarity.toFixed(2)}%)`;
+      } else if (this.selectedOption === 'amount') {
+        return `(Distance. ${similarity.toFixed(2)})`;
+      }
+      return ''; // 处理其他可能的情况
+    },
+    calculateAmountSum(date) {
+      const debitAmounts = this.listAmounts[date]?.debitAmounts || [];
+      const creditAmounts = this.listAmounts[date]?.creditAmounts || [];
+
+      return debitAmounts.map((debit, index) => debit + creditAmounts[index]).join(', ');
     },
   }
 };

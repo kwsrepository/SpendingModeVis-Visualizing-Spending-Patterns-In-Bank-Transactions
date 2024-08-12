@@ -80,12 +80,11 @@
           </el-switch>
         </div>
         <div class="radio-group">
-          <el-radio-group v-model="selectedOption" @change="handleOptionChange" class="radio-group-vertical">
+          <el-radio-group v-model="selectedOption" class="radio-group-vertical">
             <el-radio value="category">Category Similarity</el-radio>
             <el-radio value="amount">Amount Similarity</el-radio>
           </el-radio-group>
         </div>
-        <el-button @click="toggleTransactionDetail" style="width: 100px;">Calendar</el-button>
         <div class="algorithm_box">
           <el-select
             v-model="selectedAlgorithm"
@@ -98,6 +97,9 @@
             <el-option label="Jaro-Winkler" value="jaro-winkler"></el-option>
           </el-select>
         </div>
+        <div style="margin-top: 10px">
+          <el-button @click="toggleTransactionDetail" style="width: 100px;">Calendar</el-button>
+        </div>
       </div>
       <div id="similar-list">
         <top-similar-list
@@ -109,10 +111,16 @@
           @select-similar-sequence="handleSelectSimilarSequence"
         />
       </div>
-      <div id="algorithm-details"  v-if="selectedOption === 'category'">
+      <div id="algorithm-details">
         <div id="algorithm-description" v-html="selectedDescription" v-if="selectedOption === 'category'"></div>
         <div id="algorithm-process">
-          <algorithm-process :details="selectedDetails" :similarDetails="selectedSimilarDetails"></algorithm-process>
+          <algorithm-process
+            :details="selectedDetails"
+            :similarDetails="selectedSimilarDetails"
+            :dailySequences="dailySequences"
+            :dailyAmounts="dailyAmounts"
+            :selectedMapping="selectedMapping"
+          />
         </div>
       </div>
     </el-main>
@@ -303,6 +311,8 @@ export default {
     watch(selectedOption, () => {
       if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
         updateTopSimilarSequences();
+        // findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption.value, selectedAlgorithm.value)
+
       }
     });
 
@@ -463,6 +473,8 @@ export default {
       if (detailVisible.value) {
         updateTopSimilarSequences();
       }
+      // findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption.value, selectedAlgorithm.value)
+
     });
 
     watch(isDarkMode, (newVal) => {
@@ -580,7 +592,6 @@ export default {
   height: 35%;
   border: 2px solid #E4E4E4;
   border-radius: 8px;
-  display: flex;
 }
 
 .up-half-page, .down-half-page{

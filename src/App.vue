@@ -11,9 +11,10 @@
 <!--          <router-link to="/page3" class="tab-link" active-class="active">(color wheel)</router-link>-->
 <!--          <router-link to="/page4" class="tab-link" active-class="active">Page 4</router-link>-->
 <!--        </div>-->
+
 <!--    </el-aside>-->
 
-    <router-link to="/page2" class="tab-link" active-class="active"></router-link>
+    <router-link to="/page2" class="tab-link" active-class="active">111</router-link>
 
     <el-container>
       <router-view></router-view>

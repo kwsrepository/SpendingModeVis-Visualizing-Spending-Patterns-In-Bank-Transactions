@@ -191,78 +191,21 @@ export function findTopSimilarSequences(targetSequence, allSequences, algorithm 
   return similarities.slice(0, topN);
 }
 
-
-
 export function findTopSimilarSequencesByAmount(targetSequence, allSequences, topN = 10) {
-  // 新建一个变量，用于存储 targetSequence 的新数组
-  const targetAmounts = targetSequence.creditAmounts.map((credit, index) => {
-    // 将 creditAmounts 和 debitAmounts 中的值相加
-    return credit + targetSequence.debitAmounts[index];
-  });
-
-  // 遍历所有待比较的序列，创建新数组
-  const allSequenceAmounts = allSequences.map(seq => {
-    // 对于每个序列，创建一个新的数组，类似于 targetAmounts 的处理
-    const newAmounts = seq.creditAmounts.map((credit, index) => {
-      // 将 creditAmounts 和 debitAmounts 中的值相加
-      return credit + seq.debitAmounts[index];
+  // 遍历所有待比较的序列，计算与 targetSequence 的欧氏距离
+  const similarities = allSequences.map(seq => {
+    // 调用 calculateEuclideanDistance 函数计算欧氏距离
+    const distance = calculateEuclideanDistance({
+      creditAmounts: seq.creditAmounts,
+      debitAmounts: seq.debitAmounts
+    }, {
+      creditAmounts: targetSequence.creditAmounts,
+      debitAmounts: targetSequence.debitAmounts
     });
 
     return {
       date: seq.date, // 保留日期信息以便于后续处理
       sequence: seq.sequence, // 保留原始序列信息
-      newAmounts // 新生成的数组
-    };
-  });
-
-  // console.log("Target Amounts Array:", targetAmounts);
-  // console.log("All Sequence Amounts Arrays:", allSequenceAmounts);
-
-  // 计算每个序列与 targetAmounts 的相似度（欧氏距离）
-  const similarities = allSequenceAmounts.map(({ date, sequence, newAmounts }) => {
-    // 确定两个数组中较短的一个
-    const [longArray, shortArray] = targetAmounts.length >= newAmounts.length
-      ? [targetAmounts, newAmounts]
-      : [newAmounts, targetAmounts];
-
-    const lengthDifference = longArray.length - shortArray.length;
-
-    // 找出长数组中最小值的索引位置，并在短数组对应位置插入0
-    const indicesToInsertZero = [];
-    for (let i = 0; i < lengthDifference; i++) {
-      // 找出未被使用的最小值的索引位置
-      let minIndex = -1;
-      let minValue = Infinity;
-
-      for (let j = 0; j < longArray.length; j++) {
-        if (!indicesToInsertZero.includes(j) && longArray[j] < minValue) {
-          minValue = longArray[j];
-          minIndex = j;
-        }
-      }
-      indicesToInsertZero.push(minIndex);
-    }
-
-    // 在短数组中插入0
-    const extendedShortArray = [...shortArray];
-    indicesToInsertZero.forEach(index => {
-      extendedShortArray.splice(index, 0, 0); // 在指定位置插入 0
-    });
-
-    // 输出插入0之后的两个数组
-    // console.log("Long Array:", longArray);
-    // console.log("Extended Short Array:", extendedShortArray);
-
-    // 计算欧氏距离
-    const distance = Math.sqrt(
-      longArray.reduce((sum, val, index) => {
-        return sum + Math.pow(val - extendedShortArray[index], 2);
-      }, 0)
-    );
-
-    return {
-      date,
-      sequence,
       similarity: distance // 这里使用距离作为相似度，距离越小越相似
     };
   });
@@ -274,4 +217,146 @@ export function findTopSimilarSequencesByAmount(targetSequence, allSequences, to
   return similarities.slice(0, topN);
 }
 
+export function calculateEuclideanDistance(sequence1, sequence2) {
+  // 处理第一个序列，创建一个新数组，将 creditAmounts 和 debitAmounts 中的值相加
+  const amounts1 = sequence1.creditAmounts.map((credit, index) => {
+    return credit + sequence1.debitAmounts[index];
+  });
+
+  // 处理第二个序列，创建一个新数组，将 creditAmounts 和 debitAmounts 中的值相加
+  const amounts2 = sequence2.creditAmounts.map((credit, index) => {
+    return credit + sequence2.debitAmounts[index];
+  });
+
+  // 确定两个数组中较长的一个
+  const [longArray, shortArray] = amounts1.length >= amounts2.length
+    ? [amounts1, amounts2]
+    : [amounts2, amounts1];
+
+  const lengthDifference = longArray.length - shortArray.length;
+
+  // 找出长数组中最小值的索引位置，并在短数组对应位置插入0
+  const indicesToInsertZero = [];
+  for (let i = 0; i < lengthDifference; i++) {
+    let minIndex = -1;
+    let minValue = Infinity;
+
+    for (let j = 0; j < longArray.length; j++) {
+      if (!indicesToInsertZero.includes(j) && longArray[j] < minValue) {
+        minValue = longArray[j];
+        minIndex = j;
+      }
+    }
+    indicesToInsertZero.push(minIndex);
+  }
+
+  // 在短数组中插入0
+  const extendedShortArray = [...shortArray];
+  indicesToInsertZero.forEach(index => {
+    extendedShortArray.splice(index, 0, 0); // 在指定位置插入 0
+  });
+
+  // 输出插入0之后的两个数组
+  // console.log("Long Array:", longArray);
+  // console.log("Extended Short Array:", extendedShortArray);
+
+  // 计算欧氏距离
+  const distance = Math.sqrt(
+    longArray.reduce((sum, val, index) => {
+      return sum + Math.pow(val - extendedShortArray[index], 2);
+    }, 0)
+  );
+
+  // console.log('Euclidean Distance:', distance);
+
+  return distance;
+}
+
+export function findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption, selectedAlgorithm) {
+  const sequences = dailySequences.value || dailySequences;
+  const amountsData = dailyAmounts.value || dailyAmounts;
+  // console.log('amountsData', amountsData);
+
+  let maxSimilarCount = 0;
+  let mostSimilarSequence = null;
+
+  const sequenceKeys = Object.keys(sequences);
+  const sequenceLength = sequenceKeys.length;
+
+  // 对所有序列进行两两比较
+  for (let i = 0; i < sequenceLength; i++) {
+    const targetDate = sequenceKeys[i];
+    const targetSequence = sequences[targetDate];
+
+    // 确保目标序列有效
+    if (!targetSequence || typeof targetSequence !== 'string') {
+      continue;
+    }
+
+    let similarCount = 0;
+
+    for (let j = 0; j < sequenceLength; j++) {
+      if (i === j) continue; // 跳过自身比较
+
+      const compareDate = sequenceKeys[j];
+      const compareSequence = sequences[compareDate];
+
+      // 确保待比较序列有效
+      if (!compareSequence || typeof compareSequence !== 'string') {
+        continue;
+      }
+
+      let similarity;
+
+      if (selectedOption === 'category') {
+        // 根据 selectedAlgorithm 调用不同的相似度计算函数
+        if (selectedAlgorithm === 'jaro-winkler') {
+          similarity = calculateJaroWinklerSimilarity(targetSequence, compareSequence);
+        } else {
+          similarity = calculateSimilarity(targetSequence, compareSequence, selectedAlgorithm);
+        }
+
+        // 统计相似度在 75% 以上的序列数量
+        if (similarity >= 75) {
+          similarCount++;
+        }
+
+      } else if (selectedOption === 'amount') {
+        const targetAmounts = amountsData[targetDate];
+        const compareAmounts = amountsData[compareDate];
+
+        // console.log('targetAmounts', targetAmounts);
+        // console.log('compareAmounts', compareAmounts);
+
+        const distance = calculateEuclideanDistance(targetAmounts, compareAmounts);
+
+        // 统计距离较小的序列数量
+        const distanceThreshold = 10;   //假设距离小于某个阈值算为相似
+        if (distance <= distanceThreshold) {
+          similarCount++;
+        }
+      }
+    }
+
+    // 更新拥有最多相似序列的序列信息
+    if (similarCount > maxSimilarCount) {
+      maxSimilarCount = similarCount;
+      mostSimilarSequence = {
+        date: targetDate,
+        sequence: targetSequence,
+        similarCount,
+        debitAmounts: dailyAmounts[targetDate]?.debitAmounts || [],
+        creditAmounts: dailyAmounts[targetDate]?.creditAmounts || [],
+      };
+    }
+  }
+
+  if (mostSimilarSequence) {
+    console.log('Most Similar Sequence:', mostSimilarSequence, 'Similar Sequence Count', maxSimilarCount);
+  } else {
+    console.log('No similar sequences found.');
+  }
+
+  return mostSimilarSequence;
+}
 

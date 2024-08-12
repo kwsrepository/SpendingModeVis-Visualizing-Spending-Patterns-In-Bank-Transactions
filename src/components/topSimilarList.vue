@@ -8,6 +8,7 @@
           <span class="list-date"> {{ selectedDetails.date }} </span>:
           <span v-html="renderedSelectedSequence"></span>
           <span class = "list-text">(Target Sequence) </span>
+          <span class="amount-sum"> (Amount Array: {{ calculateAmountSum(selectedDetails.date) }}) </span>
         </div>
       </li>
       <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index" @click="selectSimilarSequence(seq)">
@@ -69,9 +70,9 @@ export default {
     selectedMapping() {
       this.renderedSelectedSequence = this.renderSequenceWithTooltip(this.selectedDetails.sequence, this.selectedDetails.date);
     },
-    selectedOption(newVal) {
-      console.log('selectedOption changed to:', newVal);
-    },
+    // selectedOption(newVal) {
+    //   console.log('selectedOption changed to:', newVal);
+    // },
   },
   computed: {
     filteredTopSimilarSequences() {

@@ -31,6 +31,20 @@
               <el-radio value="area">Amount Map to Area</el-radio>
             </el-radio-group>
           </div>
+          <el-dropdown @command="handleDropdownCommand" style="margin-top: 10px">
+            <span class="el-dropdown-link">
+              Find Average Day
+              <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="mostFrequent">Most frequent day</el-dropdown-item>
+                <el-dropdown-item command="averageDay">Average day info</el-dropdown-item>
+                <el-dropdown-item command="categoryDistribution">Category distribution</el-dropdown-item>
+                <el-dropdown-item command="amountDistribution">Amount distribution</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </el-scrollbar>
       <div style="width: 100px;">
@@ -52,16 +66,39 @@
           </el-anchor>
         </el-col>
       </div>
-      <div class="mapping-legend"></div>
+      <div v-if="showMappingLegend" class="mapping-legend"></div>
+      <div v-else class="average-info">
+        <div v-if="selectedDropdown === 'mostFrequent'" class="new-content-container">
+          <div id="algorithm-process">
+            <algorithm-process
+              :details="selectedDetails"
+              :similarDetails="selectedSimilarDetails"
+              :dailySequences="dailySequences"
+              :dailyAmounts="dailyAmounts"
+              :selectedMapping="selectedMapping"
+            />
+          </div>
+        </div>
+        <div v-if="selectedDropdown === 'averageDay'" class="new-content-container">
+          <AverageDay :data="jsonData" />
+        </div>
+        <div v-if="selectedDropdown === 'categoryDistribution' && jsonData && worksheet" class="new-content-container">
+          <CategoryDistribution :data="jsonData" />
+        </div>
+        <div v-if="selectedDropdown === 'amountDistribution' && jsonData && worksheet" class="new-content-container">
+          <AmountDistribution :data="jsonData" />
+        </div>
+      </div>
     </el-main>
+
     <el-main class="down-half-page">
       <div id="user-option">
-<!--        <div>-->
-<!--          <el-button @click="selectAll">Select all</el-button>-->
-<!--        </div>-->
-<!--        <div>-->
-<!--          <el-button @click="clearAll">Clear</el-button>-->
-<!--        </div>-->
+        <!--        <div>-->
+        <!--          <el-button @click="selectAll">Select all</el-button>-->
+        <!--        </div>-->
+        <!--        <div>-->
+        <!--          <el-button @click="clearAll">Clear</el-button>-->
+        <!--        </div>-->
         <div>
           <el-switch
             v-model="isDarkMode"
@@ -113,15 +150,6 @@
       </div>
       <div id="algorithm-details">
         <div id="algorithm-description" v-html="selectedDescription" v-if="selectedOption === 'category'"></div>
-        <div id="algorithm-process">
-          <algorithm-process
-            :details="selectedDetails"
-            :similarDetails="selectedSimilarDetails"
-            :dailySequences="dailySequences"
-            :dailyAmounts="dailyAmounts"
-            :selectedMapping="selectedMapping"
-          />
-        </div>
       </div>
     </el-main>
     <transaction-similarity
@@ -148,8 +176,14 @@ import TransactionSimilarity from '@/components/TransactionSimilarity';
 import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
+import CategoryDistribution from '@/components/CategoryDistribution.vue';
+import AmountDistribution from '@/components/AmountDistribution.vue';
+import AverageDay from '@/components/AverageDay.vue';
 import '@/assets/global.css';
-import { ElSwitch, ElButton, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink, ElCol, ElSelect, ElOption, ElRadioGroup, ElRadio } from 'element-plus';
+import { ElSwitch, ElButton, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink,
+  ElCol, ElSelect, ElOption, ElRadioGroup, ElRadio,
+  ElDropdown, ElDropdownMenu, ElDropdownItem, ElIcon } from 'element-plus';
+import { ArrowDown } from '@element-plus/icons-vue';
 
 
 export default {
@@ -164,6 +198,9 @@ export default {
     TransactionSimilarity,
     TopSimilarList,
     AlgorithmProcess,
+    CategoryDistribution,
+    AmountDistribution,
+    AverageDay,
     ElAnchor,
     ElAnchorLink,
     ElCol,
@@ -171,11 +208,19 @@ export default {
     ElOption,
     ElRadioGroup,
     ElRadio,
+    ElDropdown,
+    ElDropdownMenu,
+    ElDropdownItem,
+    ElIcon,
+    ArrowDown,
   },
-  data() {
-    return {
-      showTransactionDetail: false
-    };
+  watch: {
+    selectedMapping() {
+      this.showMappingLegend = true;  // 切换到 mapping-legend
+    },
+    selectedDropdown() {
+      this.showMappingLegend = false; // 切换到 average-info
+    }
   },
   methods: {
     toggleTransactionDetail() {
@@ -183,6 +228,9 @@ export default {
     },
     closeDetail() {
       this.showTransactionDetail = false;
+    },
+    handleDropdownCommand(command) {
+      this.selectedDropdown = command; // 处理下拉菜单选择
     },
   },
   setup() {
@@ -208,6 +256,9 @@ export default {
     const legendTree = ref(null);
     const containerRef = ref(null);
     const selectedMapping = ref('none');
+    const showTransactionDetail = ref(false);
+    const selectedDropdown = ref(null);
+    const showMappingLegend = ref(true);
 
     const detailVisible = ref(false);
     const selectedDetails = ref({
@@ -312,7 +363,6 @@ export default {
       if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
         updateTopSimilarSequences();
         // findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption.value, selectedAlgorithm.value)
-
       }
     });
 
@@ -378,6 +428,7 @@ export default {
       selectedKeys.value = checkedKeys;
       const selected = new Set(checkedNodes.filter(node => node.children == null).map(node => node.label));
       selectedCategories.value = selected;
+
       legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
       EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
     };
@@ -424,6 +475,12 @@ export default {
         }
 
       });
+
+      showMappingLegend.value = true;  // 切换到 mapping-legend
+    });
+
+    watch(selectedDropdown, () => {
+      showMappingLegend.value = false; // 切换到 average-info
     });
 
     onMounted(() => {
@@ -521,10 +578,12 @@ export default {
         }
       }
     };
-    // console.log("dailySequences2:", dailySequences);
+    // console.log("dailySequences:", dailySequences);
     // console.log("dailyAmounts:", dailyAmounts);
 
     return {
+      jsonData,
+      worksheet,
       showAllDates,
       isDarkMode,
       selectedAlgorithm,
@@ -551,7 +610,10 @@ export default {
       dailyAmounts,
       listAmounts,
       selectedSimilarDetails,
-      handleSelectSimilarSequence
+      handleSelectSimilarSequence,
+      showTransactionDetail,
+      selectedDropdown,
+      showMappingLegend,
     };
   }
 };
@@ -616,4 +678,3 @@ export default {
 }
 
 </style>
-

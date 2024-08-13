@@ -15,7 +15,7 @@ body {
 .switch-fixed {
     position: absolute;
     top: 10px;
-    right: 3px;
+    right: 10px;
     z-index: 100;      /* 确保在滚动条和其他内容之上 */
 }
 
@@ -88,7 +88,7 @@ svg {
     width: 100%;
 }
 
-.mapping-legend {
+.mapping-legend, .average-info {
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -144,7 +144,6 @@ svg {
 
 #algorithm-details {
     width: 500px;
-    min-width: 500px;
 }
 
 #similar-list {
@@ -195,7 +194,7 @@ svg {
 }
 
 .text-style, .similar-sequences, .tree-node-text, .year-label, #algorithm-description,
-#algorithm-process, .mapping-legend {
+#algorithm-process, .mapping-legend, .average-info {
     fill: var(--text-color);
     color: var(--text-color);
 }
@@ -213,7 +212,7 @@ svg {
    background-color: var(--month-header-color);
 }
 
-#algorithm-description, #algorithm-process {
+#algorithm-description, #algorithm-process, .average-day {
     height: fit-content;
     /*width: 100%;*/
     padding: 10px;

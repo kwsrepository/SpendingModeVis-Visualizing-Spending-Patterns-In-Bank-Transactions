@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
 import { colorMap } from '@/services/colorMapping';
 import { subCategoryMapping } from '@/services/StringMapping';
-import { mapHeight, mapWidth, mapArea  } from '@/services/sizeMapping';
+import { mapHeight, mapWidth, mapArea } from '@/services/sizeMapping';
 
 export function EventSequenceChart(data, worksheet, showAllDates = false, selectedCategories = new Set(), selectedMapping = 'none') {
   //console.log("EventSequenceChart data:", data);

@@ -319,11 +319,6 @@ export function WidthLegendChart(containerSelector) {
     .text("Transaction amount (unit: BGP)");
 }
 
-
-
-
-
-
 export function AreaLegendChart(containerSelector) {
   const width = 340; // 画布宽度
   const height = 400; // 画布高度

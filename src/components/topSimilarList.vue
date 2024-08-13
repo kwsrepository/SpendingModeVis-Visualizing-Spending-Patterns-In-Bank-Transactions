@@ -8,7 +8,7 @@
           <span class="list-date"> {{ selectedDetails.date }} </span>:
           <span v-html="renderedSelectedSequence"></span>
           <span class = "list-text">(Target Sequence) </span>
-          <span class="amount-sum"> (Amount Array: {{ calculateAmountSum(selectedDetails.date) }}) </span>
+          <span class="amount-sum"> Amounts: [ {{ calculateAmountSum(selectedDetails.date) }} ] </span>
         </div>
       </li>
       <li v-for="(seq, index) in filteredTopSimilarSequences" :key="index" @click="selectSimilarSequence(seq)">
@@ -16,7 +16,7 @@
         <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequenceWithTooltip(seq.sequence, seq.date)"></span>
         <span class="list-text">{{ formattedSimilarityText(seq.similarity) }}</span>
-        <span class="amount-sum"> (Amount Array: {{ calculateAmountSum(seq.date) }}) </span>
+        <span class="amount-sum"> Amounts: [ {{ calculateAmountSum(seq.date) }} ] </span>
       </li>
     </ul>
   </div>

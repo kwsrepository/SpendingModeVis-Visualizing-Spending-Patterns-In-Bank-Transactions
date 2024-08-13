@@ -15,10 +15,10 @@
         </div>
         <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
       </el-tab-pane>
-      <el-tab-pane label="Timeline" class="text-style">
-        <h2>Timeline</h2>
-        <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
-      </el-tab-pane>
+<!--      <el-tab-pane label="Timeline" class="text-style">-->
+<!--        <h2>Timeline</h2>-->
+<!--        <el-backtop :right="100" :bottom="100" target=".custom-tabs" />-->
+<!--      </el-tab-pane>-->
     </el-tabs>
   </div>
 </template>

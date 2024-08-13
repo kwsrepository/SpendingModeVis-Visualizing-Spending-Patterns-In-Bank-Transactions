@@ -74,7 +74,7 @@
           <div class="sequence-container" id="sequence-euclidean">
             <span>2019-12-05:</span>
             <div id="sequence-euclidean-draw"></div>
-            <span>has 364 similar sequence</span>
+            <span>(has 364 similar sequence)</span>
             <span v-html="displaySequenceInfo('2019-12-05')"></span>
           </div>
         </li>

@@ -6,7 +6,11 @@
         <el-button @click="close" class="close-button">Close</el-button>
       </div>
       <el-tab-pane label="Month View" class="text-style">
-        <month-view :highlightDates="similarDates" :topSimilarSequences="topSimilarSequences" />
+        <month-view
+          :highlightDates="similarDates"
+          :topSimilarSequences="topSimilarSequences"
+          :selectedOption="selectedOption"
+        />
         <el-backtop :right="100" :bottom="100" target=".custom-tabs" />
       </el-tab-pane>
       <el-tab-pane label="Year View" class="text-style">
@@ -26,7 +30,7 @@
 <script>
 import { ref, watch, nextTick } from 'vue';
 import { ElTabs, ElTabPane, ElButton, ElBacktop } from 'element-plus';
-import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
+import { findTopSimilarSequences, findTopSimilarSequencesByAmount, findTopSimilarSequencesCombined } from '@/services/sequenceSimilarity';
 // import { segmentWidths, widthSegments } from '@/services/sizeMapping';
 import YearView from './YearView.vue';
 import MonthView from './MonthView.vue';
@@ -187,6 +191,22 @@ export default {
             };
 
             topSimilarSequences.value = findTopSimilarSequencesByAmount(targetSequence, allSequences);
+          } else if (props.selectedOption === 'combined') {
+            const targetSequence = {
+              date: dateMatch,
+              sequence: selectedSequence,
+              debitAmounts: props.dailyAmounts[dateMatch]?.debitAmounts || [], // 确保为数组
+              creditAmounts: props.dailyAmounts[dateMatch]?.creditAmounts || [], // 确保为数组
+            };
+
+            // 确保所有序列中的 debitAmounts 和 creditAmounts 为数组
+            const validSequences = allSequences.map(seq => ({
+              ...seq,
+              debitAmounts: seq.debitAmounts || [], // 确保为数组
+              creditAmounts: seq.creditAmounts || [], // 确保为数组
+            }));
+
+            topSimilarSequences.value = findTopSimilarSequencesCombined(targetSequence, validSequences, props.algorithm);
           }
 
           similarDates.value = topSimilarSequences.value.map(seq => seq.date);

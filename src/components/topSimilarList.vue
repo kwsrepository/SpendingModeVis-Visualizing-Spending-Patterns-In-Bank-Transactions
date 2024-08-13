@@ -1,6 +1,5 @@
 <template>
   <div v-if="topSimilarSequences.length" class="similar-sequences">
-    <!--    <h3 class="text-style">Top 10 Similar Sequences</h3>-->
     <ul>
       <li>
         <div v-if="selectedDetails" class="selected-sequence">
@@ -15,7 +14,7 @@
         <span :class="['day-of-week', getDayClass(getDayOfWeek(seq.date))]">{{ getDayOfWeek(seq.date) }} </span>
         <span class="list-date"> {{ seq.date }} </span>:
         <span v-html="renderSequenceWithTooltip(seq.sequence, seq.date)"></span>
-        <span class="list-text">{{ formattedSimilarityText(seq.similarity) }}</span>
+        <span class="list-text">{{ formattedSimilarityText(seq) }}</span>
         <span class="amount-sum"> Amounts: [ {{ calculateAmountSum(seq.date) }} ] </span>
       </li>
     </ul>
@@ -156,11 +155,13 @@ export default {
       };
       this.$emit('select-similar-sequence', similarDetails);
     },
-    formattedSimilarityText(similarity) {
+    formattedSimilarityText(seq) {
       if (this.selectedOption === 'category') {
-        return `(Similarity. ${similarity.toFixed(2)}%)`;
+        return `(Category Similarity: ${seq.similarity.toFixed(2)}%)`;
       } else if (this.selectedOption === 'amount') {
-        return `(Distance. ${similarity.toFixed(2)})`;
+        return `(Amount Distance: ${seq.similarity.toFixed(2)})`;
+      } else if (this.selectedOption === 'combined') {
+        return `(Category Similarity: ${seq.categorySimilarity.toFixed(2)}%, Amount Similarity: ${seq.amountSimilarity.toFixed(2)*100}%, Combined Similarity: ${seq.combinedSimilarity.toFixed(2)}%)`;
       }
       return ''; // 处理其他可能的情况
     },

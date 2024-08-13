@@ -1,3 +1,92 @@
+//分别找各个模式中最高频的序列（非常花时间。可能导致浏览器崩溃）
+export function findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption, selectedAlgorithm) {
+  const sequences = dailySequences.value || dailySequences;
+  const amountsData = dailyAmounts.value || dailyAmounts;
+  // console.log('amountsData', amountsData);
+
+  let maxSimilarCount = 0;
+  let mostSimilarSequence = null;
+
+  const sequenceKeys = Object.keys(sequences);
+  const sequenceLength = sequenceKeys.length;
+
+  // 对所有序列进行两两比较
+  for (let i = 0; i < sequenceLength; i++) {
+    const targetDate = sequenceKeys[i];
+    const targetSequence = sequences[targetDate];
+
+    // 确保目标序列有效
+    if (!targetSequence || typeof targetSequence !== 'string') {
+      continue;
+    }
+
+    let similarCount = 0;
+
+    for (let j = 0; j < sequenceLength; j++) {
+      if (i === j) continue; // 跳过自身比较
+
+      const compareDate = sequenceKeys[j];
+      const compareSequence = sequences[compareDate];
+
+      // 确保待比较序列有效
+      if (!compareSequence || typeof compareSequence !== 'string') {
+        continue;
+      }
+
+      let similarity;
+
+      if (selectedOption === 'category') {
+        // 根据 selectedAlgorithm 调用不同的相似度计算函数
+        if (selectedAlgorithm === 'jaro-winkler') {
+          similarity = calculateJaroWinklerSimilarity(targetSequence, compareSequence);
+        } else {
+          similarity = calculateSimilarity(targetSequence, compareSequence, selectedAlgorithm);
+        }
+
+        // 统计相似度在 75% 以上的序列数量
+        if (similarity >= 75) {
+          similarCount++;
+        }
+
+      } else if (selectedOption === 'amount') {
+        const targetAmounts = amountsData[targetDate];
+        const compareAmounts = amountsData[compareDate];
+
+        // console.log('targetAmounts', targetAmounts);
+        // console.log('compareAmounts', compareAmounts);
+
+        const distance = calculateEuclideanDistance(targetAmounts, compareAmounts);
+
+        // 统计距离较小的序列数量
+        const distanceThreshold = 10;   //假设距离小于某个阈值算为相似
+        if (distance <= distanceThreshold) {
+          similarCount++;
+        }
+      }
+    }
+
+    // 更新拥有最多相似序列的序列信息
+    if (similarCount > maxSimilarCount) {
+      maxSimilarCount = similarCount;
+      mostSimilarSequence = {
+        date: targetDate,
+        sequence: targetSequence,
+        similarCount,
+        debitAmounts: dailyAmounts[targetDate]?.debitAmounts || [],
+        creditAmounts: dailyAmounts[targetDate]?.creditAmounts || [],
+      };
+    }
+  }
+
+  if (mostSimilarSequence) {
+    console.log('Most Similar Sequence:', mostSimilarSequence, 'Similar Sequence Count', maxSimilarCount);
+  } else {
+    console.log('No similar sequences found.');
+  }
+
+  return mostSimilarSequence;
+}
+
 // Levenshtein 距离
 function levenshteinDistance(a, b) {
   // a = 'example';
@@ -142,81 +231,7 @@ function jaroWinklerDistance(s1, s2) {
   return 1 - (jaro + Math.min(prefix, 4) * p * (1 - jaro));
 }
 
-
-// 计算相似度百分比
-function calculateSimilarity(sequence1, sequence2, algorithm) {
-  if (!sequence1 || !sequence2) return 0; // 确保字符串非空
-
-  let distance;
-  if (algorithm === 'levenshtein') {
-    distance = levenshteinDistance(sequence1, sequence2);
-  } else if (algorithm === 'damerau-levenshtein') {
-    distance = damerauLevenshteinDistance(sequence1, sequence2);
-  } else if (algorithm === 'hamming') {
-    distance = hammingDistance(sequence1, sequence2);
-  } else {
-    throw new Error(`Unknown algorithm: ${algorithm}`);
-  }
-
-  // const maxLength = Math.max(sequence1.length, sequence2.length);
-  // return (1 - distance / maxLength) * 100;
-  const length = sequence1.length;
-  // console.log('original sequence length:', length);
-  // console.log('original sequence:', sequence1);
-  return (1-distance/length)*100;
-}
-
-//Jaro-Winkler 距离必须使用对应的Jaro-Winkler相似度
-function calculateJaroWinklerSimilarity(sequence1, sequence2) {
-  return (1 - jaroWinklerDistance(sequence1, sequence2))*100;
-}
-
-// 找出与指定序列最相似的十个序列
-export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 11) {
-  const similarities = allSequences
-    // .filter(seq => seq.date !== targetSequence.date) // 过滤掉自身序列
-    .map(seq => {
-      const similarity = algorithm === 'jaro-winkler'
-        ? calculateJaroWinklerSimilarity(targetSequence, seq.sequence)
-        : calculateSimilarity(targetSequence, seq.sequence, algorithm);
-      return {
-        date: seq.date,
-        sequence: seq.sequence,
-        similarity
-      };
-    });
-
-  similarities.sort((a, b) => b.similarity - a.similarity);
-
-  return similarities.slice(0, topN);
-}
-
-export function findTopSimilarSequencesByAmount(targetSequence, allSequences, topN = 10) {
-  // 遍历所有待比较的序列，计算与 targetSequence 的欧氏距离
-  const similarities = allSequences.map(seq => {
-    // 调用 calculateEuclideanDistance 函数计算欧氏距离
-    const distance = calculateEuclideanDistance({
-      creditAmounts: seq.creditAmounts,
-      debitAmounts: seq.debitAmounts
-    }, {
-      creditAmounts: targetSequence.creditAmounts,
-      debitAmounts: targetSequence.debitAmounts
-    });
-
-    return {
-      date: seq.date, // 保留日期信息以便于后续处理
-      sequence: seq.sequence, // 保留原始序列信息
-      similarity: distance // 这里使用距离作为相似度，距离越小越相似
-    };
-  });
-
-  // 按相似度排序并返回前 topN 个相似序列
-  similarities.sort((a, b) => a.similarity - b.similarity);
-  // console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
-
-  return similarities.slice(0, topN);
-}
-
+// 欧式距离
 export function calculateEuclideanDistance(sequence1, sequence2) {
   // 处理第一个序列，创建一个新数组，将 creditAmounts 和 debitAmounts 中的值相加
   const amounts1 = sequence1.creditAmounts.map((credit, index) => {
@@ -272,91 +287,123 @@ export function calculateEuclideanDistance(sequence1, sequence2) {
   return distance;
 }
 
-export function findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption, selectedAlgorithm) {
-  const sequences = dailySequences.value || dailySequences;
-  const amountsData = dailyAmounts.value || dailyAmounts;
-  // console.log('amountsData', amountsData);
-
-  let maxSimilarCount = 0;
-  let mostSimilarSequence = null;
-
-  const sequenceKeys = Object.keys(sequences);
-  const sequenceLength = sequenceKeys.length;
-
-  // 对所有序列进行两两比较
-  for (let i = 0; i < sequenceLength; i++) {
-    const targetDate = sequenceKeys[i];
-    const targetSequence = sequences[targetDate];
-
-    // 确保目标序列有效
-    if (!targetSequence || typeof targetSequence !== 'string') {
-      continue;
-    }
-
-    let similarCount = 0;
-
-    for (let j = 0; j < sequenceLength; j++) {
-      if (i === j) continue; // 跳过自身比较
-
-      const compareDate = sequenceKeys[j];
-      const compareSequence = sequences[compareDate];
-
-      // 确保待比较序列有效
-      if (!compareSequence || typeof compareSequence !== 'string') {
-        continue;
-      }
-
-      let similarity;
-
-      if (selectedOption === 'category') {
-        // 根据 selectedAlgorithm 调用不同的相似度计算函数
-        if (selectedAlgorithm === 'jaro-winkler') {
-          similarity = calculateJaroWinklerSimilarity(targetSequence, compareSequence);
-        } else {
-          similarity = calculateSimilarity(targetSequence, compareSequence, selectedAlgorithm);
-        }
-
-        // 统计相似度在 75% 以上的序列数量
-        if (similarity >= 75) {
-          similarCount++;
-        }
-
-      } else if (selectedOption === 'amount') {
-        const targetAmounts = amountsData[targetDate];
-        const compareAmounts = amountsData[compareDate];
-
-        // console.log('targetAmounts', targetAmounts);
-        // console.log('compareAmounts', compareAmounts);
-
-        const distance = calculateEuclideanDistance(targetAmounts, compareAmounts);
-
-        // 统计距离较小的序列数量
-        const distanceThreshold = 10;   //假设距离小于某个阈值算为相似
-        if (distance <= distanceThreshold) {
-          similarCount++;
-        }
-      }
-    }
-
-    // 更新拥有最多相似序列的序列信息
-    if (similarCount > maxSimilarCount) {
-      maxSimilarCount = similarCount;
-      mostSimilarSequence = {
-        date: targetDate,
-        sequence: targetSequence,
-        similarCount,
-        debitAmounts: dailyAmounts[targetDate]?.debitAmounts || [],
-        creditAmounts: dailyAmounts[targetDate]?.creditAmounts || [],
-      };
-    }
-  }
-
-  if (mostSimilarSequence) {
-    console.log('Most Similar Sequence:', mostSimilarSequence, 'Similar Sequence Count', maxSimilarCount);
-  } else {
-    console.log('No similar sequences found.');
-  }
-
-  return mostSimilarSequence;
+//Jaro-Winkler 距离必须使用对应的Jaro-Winkler相似度
+function calculateJaroWinklerSimilarity(sequence1, sequence2) {
+  return (1 - jaroWinklerDistance(sequence1, sequence2))*100;
 }
 
+// 计算相似度百分比（基于种类）
+function calculateSimilarity(sequence1, sequence2, algorithm) {
+  if (!sequence1 || !sequence2) return 0; // 确保字符串非空
+
+  let distance;
+  if (algorithm === 'levenshtein') {
+    distance = levenshteinDistance(sequence1, sequence2);
+  } else if (algorithm === 'damerau-levenshtein') {
+    distance = damerauLevenshteinDistance(sequence1, sequence2);
+  } else if (algorithm === 'hamming') {
+    distance = hammingDistance(sequence1, sequence2);
+  } else {
+    throw new Error(`Unknown algorithm: ${algorithm}`);
+  }
+
+  // const maxLength = Math.max(sequence1.length, sequence2.length);
+  // return (1 - distance / maxLength) * 100;
+  const length = sequence1.length;
+  // console.log('original sequence length:', length);
+  // console.log('original sequence:', sequence1);
+  return (1-distance/length)*100;
+}
+
+// 找出与指定序列最相似的十个序列（基于分类）
+export function findTopSimilarSequences(targetSequence, allSequences, algorithm = 'levenshtein', topN = 10) {
+  const similarities = allSequences
+    // .filter(seq => seq.date !== targetSequence.date) // 过滤掉自身序列
+    .map(seq => {
+      const similarity = algorithm === 'jaro-winkler'
+        ? calculateJaroWinklerSimilarity(targetSequence, seq.sequence)
+        : calculateSimilarity(targetSequence, seq.sequence, algorithm);
+      return {
+        date: seq.date,
+        sequence: seq.sequence,
+        similarity
+      };
+    });
+
+  similarities.sort((a, b) => b.similarity - a.similarity);
+
+  return similarities.slice(0, topN);
+}
+
+// 找出与指定序列最相似的十个序列（基于金额）
+export function findTopSimilarSequencesByAmount(targetSequence, allSequences, topN = 10) {
+  // 遍历所有待比较的序列，计算与 targetSequence 的欧氏距离
+  const similarities = allSequences.map(seq => {
+    // 调用 calculateEuclideanDistance 函数计算欧氏距离
+    const distance = calculateEuclideanDistance({
+      creditAmounts: seq.creditAmounts,
+      debitAmounts: seq.debitAmounts
+    }, {
+      creditAmounts: targetSequence.creditAmounts,
+      debitAmounts: targetSequence.debitAmounts
+    });
+
+    return {
+      date: seq.date, // 保留日期信息以便于后续处理
+      sequence: seq.sequence, // 保留原始序列信息
+      similarity: distance // 这里使用距离作为相似度，距离越小越相似
+    };
+  });
+
+  // 按相似度排序并返回前 topN 个相似序列
+  similarities.sort((a, b) => a.similarity - b.similarity);
+  // console.log('基于amount的相似序列计算结果：', similarities.slice(0, topN));
+
+  return similarities.slice(0, topN);
+}
+
+// 找出与指定序列最相似的十个序列（同时基于分类和金额）
+export function findTopSimilarSequencesCombined(targetSequence, allSequences, algorithm = 'levenshtein', topN = 10) {
+  // 计算每个序列的相似度
+  const similarities = allSequences.map(seq => {
+    // 计算基于分类的相似度
+    const categorySimilarity = algorithm === 'jaro-winkler'
+      ? calculateJaroWinklerSimilarity(targetSequence.sequence, seq.sequence)
+      : calculateSimilarity(targetSequence.sequence, seq.sequence, algorithm);
+
+    // 计算基于金额的欧氏距离
+    const amountDistance = calculateEuclideanDistance({
+      creditAmounts: seq.creditAmounts,
+      debitAmounts: seq.debitAmounts
+    }, {
+      creditAmounts: targetSequence.creditAmounts,
+      debitAmounts: targetSequence.debitAmounts
+    });
+
+    // 对欧氏距离进行对数缩放处理，避免直接使用较大的距离值
+    const logDistance = Math.log1p(amountDistance); // log1p(x) 等价于 log(1 + x)，对小距离值更友好
+
+    // 归一化 logDistance 到 [0, 1] 范围
+    const normalizedLogDistance = logDistance / (1 + logDistance);
+
+    // 将归一化的距离转换为相似度
+    const amountSimilarity = 1 - normalizedLogDistance; // 距离越小，相似度越高
+
+    // 计算分类相似度和金额相似度的平均值
+    const combinedSimilarity = (categorySimilarity + amountSimilarity) / 2;
+
+    return {
+      date: seq.date,
+      sequence: seq.sequence,
+      categorySimilarity,
+      amountSimilarity,
+      combinedSimilarity
+    };
+  });
+
+  // 按相似度排序，并返回前 topN 个最相似的序列
+  similarities.sort((a, b) => b.combinedSimilarity - a.combinedSimilarity);
+  // console.log('combined mode similarity result:', similarities.slice(0, topN));
+
+  return similarities.slice(0, topN);
+}

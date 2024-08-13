@@ -120,13 +120,14 @@
           <el-radio-group v-model="selectedOption" class="radio-group-vertical">
             <el-radio value="category">Category Similarity</el-radio>
             <el-radio value="amount">Amount Similarity</el-radio>
+            <el-radio value="combined">Category & Amount Similarity</el-radio>
           </el-radio-group>
         </div>
         <div class="algorithm_box">
           <el-select
             v-model="selectedAlgorithm"
             placeholder="Select Algorithm"
-            :disabled="selectedOption === 'amount'"
+            :disabled="selectedOption !== 'category'"
           >
             <el-option label="Levenshtein" value="levenshtein"></el-option>
             <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
@@ -173,7 +174,7 @@ import { HeightLegendChart, WidthLegendChart, AreaLegendChart } from '@/visualiz
 import { loadData } from '@/services/DataService';
 import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
-import { findTopSimilarSequences, findTopSimilarSequencesByAmount } from '@/services/sequenceSimilarity';
+import { findTopSimilarSequences, findTopSimilarSequencesByAmount, findTopSimilarSequencesCombined } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import CategoryDistribution from '@/components/CategoryDistribution.vue';
@@ -351,7 +352,10 @@ export default {
             // 在后面的handleUpdateTopSimilarSequences中才取到了真正的topSimilarSequences
           } else if (selectedOption.value === 'amount') {
             topSimilarSequences.value = findTopSimilarSequencesByAmount(targetSequence, allSequences);
+          } else if (selectedOption.value === 'combined') {
+            topSimilarSequences.value = findTopSimilarSequencesCombined(targetSequence, allSequences, selectedAlgorithm.value);
           }
+
           // console.log("Top Similar Sequences:", topSimilarSequences.value);
         }
       } else {
@@ -362,7 +366,7 @@ export default {
     watch(selectedOption, () => {
       if (selectedDetails.value && selectedDetails.value.date && selectedDetails.value.sequence) {
         updateTopSimilarSequences();
-        // findMostSimilarSequence(dailySequences, dailyAmounts, selectedOption.value, selectedAlgorithm.value)
+        // console.log('Top Similar Sequences:', topSimilarSequences.value);
       }
     });
 
@@ -395,7 +399,7 @@ export default {
 
     const handleSelectSimilarSequence = (sequenceDetails) => {
       selectedSimilarDetails.value = sequenceDetails;
-      console.log("selectedSimilarDetails:", selectedSimilarDetails.value);
+      // console.log("selectedSimilarDetails:", selectedSimilarDetails.value);
     };
 
     const categoryMapping = {

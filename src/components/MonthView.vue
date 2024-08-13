@@ -46,6 +46,10 @@ export default {
     topSimilarSequences: {
       type: Array,
       required: true
+    },
+    selectedOption: {
+      type: String,
+      required: true
     }
   },
   data() {
@@ -86,7 +90,15 @@ export default {
     },
     getSimilarity(date) {
       const seq = this.topSimilarSequences.find(seq => seq.date === date);
-      return seq ? seq.similarity.toFixed(2) : '';
+      if (!seq) {
+        return '';
+      }
+
+      if (this.selectedOption === 'combined') {
+        return `${seq.combinedSimilarity.toFixed(2)}%`;
+      } else {
+        return seq.similarity ? seq.similarity.toFixed(2) : '';
+      }
     },
     isMonthHighlighted(year, monthIndex) {
       const daysInMonth = this.getDaysInMonth(year, monthIndex);

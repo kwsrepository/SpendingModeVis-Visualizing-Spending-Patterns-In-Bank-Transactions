@@ -59,6 +59,8 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
     };
   }).filter(d => d.date);
 
+  // console.log('parsedData', parsedData);
+
   if (selectedMapping === 'height') {
     parsedData = mapHeight(parsedData);
   } else if (selectedMapping === 'width') {
@@ -278,5 +280,5 @@ export function EventSequenceChart(data, worksheet, showAllDates = false, select
 
   // console.log("dailySequences:", dailySequences);
   // console.log("dailyAmounts:", dailyAmounts);
-  return { dailySequences, dailyAmounts, yearPositions };
+  return { dailySequences, dailyAmounts, yearPositions, parsedData };
 }

@@ -42,6 +42,7 @@
                 <el-dropdown-item command="averageDay">Average day info</el-dropdown-item>
                 <el-dropdown-item command="categoryDistribution">Category distribution</el-dropdown-item>
                 <el-dropdown-item command="amountDistribution">Amount distribution</el-dropdown-item>
+                <el-dropdown-item command="timeDistribution">Time distribution</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -88,6 +89,12 @@
         <div v-if="selectedDropdown === 'amountDistribution' && jsonData && worksheet" class="new-content-container">
           <AmountDistribution :data="jsonData" />
         </div>
+        <div v-if="selectedDropdown === 'timeDistribution' && jsonData && worksheet" class="new-content-container">
+          <TimeDistribution
+            :parsedData="parsedData"
+            :selectedCategories="selectedCategories"
+          />
+        </div>
       </div>
     </el-main>
 
@@ -127,7 +134,7 @@
           <el-select
             v-model="selectedAlgorithm"
             placeholder="Select Algorithm"
-            :disabled="selectedOption !== 'category'"
+            :disabled="selectedOption == 'amount'"
           >
             <el-option label="Levenshtein" value="levenshtein"></el-option>
             <el-option label="Damerau-Levenshtein" value="damerau-levenshtein"></el-option>
@@ -179,6 +186,7 @@ import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
 import CategoryDistribution from '@/components/CategoryDistribution.vue';
 import AmountDistribution from '@/components/AmountDistribution.vue';
+import TimeDistribution from '@/components/TimeDistribution.vue';
 import AverageDay from '@/components/AverageDay.vue';
 import '@/assets/global.css';
 import { ElSwitch, ElButton, ElContainer, ElMain, ElTree, ElScrollbar, ElAnchor, ElAnchorLink,
@@ -201,6 +209,7 @@ export default {
     AlgorithmProcess,
     CategoryDistribution,
     AmountDistribution,
+    TimeDistribution,
     AverageDay,
     ElAnchor,
     ElAnchorLink,
@@ -240,6 +249,7 @@ export default {
     const selectedAlgorithm = ref('levenshtein');
     let jsonData = ref([]);
     let worksheet = ref(null);
+    const parsedData = ref([]);
     const legendData = ref([
       {
         id: 1,
@@ -306,6 +316,7 @@ export default {
       jsonData.value = data.jsonData;
       worksheet.value = data.worksheet;
       const result = EventSequenceChart(jsonData.value, worksheet.value, showAllDatesValue, selectedCategories.value, selectedMapping.value);
+      parsedData.value = result.parsedData;
       dailySequences.value = result.dailySequences;
       dailyAmounts.value = result.dailyAmounts;
       // console.log("dailyAmounts:", dailyAmounts);
@@ -432,6 +443,7 @@ export default {
       selectedKeys.value = checkedKeys;
       const selected = new Set(checkedNodes.filter(node => node.children == null).map(node => node.label));
       selectedCategories.value = selected;
+      // console.log('selectedCategories', selectedCategories.value);
 
       legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
       EventSequenceChart(jsonData.value, worksheet.value, showAllDates.value, selectedCategories.value, selectedMapping.value);
@@ -494,6 +506,7 @@ export default {
 
         legendTree.value.setCheckedKeys(allKeys);
         selectedCategories.value = new Set(allLabels);
+        // console.log('selectedCategories11', selectedCategories);
         selectedKeys.value = allKeys; // 初始状态下保存所有键值
 
         legendTree.value.setCheckedKeys(selectedKeys.value); // 恢复之前的选中状态
@@ -588,11 +601,13 @@ export default {
     return {
       jsonData,
       worksheet,
+      parsedData,
       showAllDates,
       isDarkMode,
       selectedAlgorithm,
       selectedMapping,
       selectedOption,
+      selectedCategories,
       updateTopSimilarSequences,
       selectAll,
       clearAll,

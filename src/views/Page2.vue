@@ -81,7 +81,7 @@
           </div>
         </div>
         <div v-if="selectedDropdown === 'averageDay'" class="new-content-container">
-          <AverageDay :data="jsonData" />
+          <AverageDay :parsedData="parsedData" />
         </div>
         <div v-if="selectedDropdown === 'categoryDistribution' && jsonData && worksheet" class="new-content-container">
           <CategoryDistribution :data="jsonData" />
@@ -145,6 +145,12 @@
         <div style="margin-top: 10px">
           <el-button @click="toggleTransactionDetail" style="width: 100px;">Calendar</el-button>
         </div>
+        <el-button @click="openKMeansDrawer" style="width: 100px;">Cluster</el-button>
+        <k-means
+          :parsedData="parsedData"
+          :isDarkMode="isDarkMode"
+          ref="kmeansComponent"
+        />
       </div>
       <div id="similar-list">
         <top-similar-list
@@ -181,6 +187,7 @@ import { HeightLegendChart, WidthLegendChart, AreaLegendChart } from '@/visualiz
 import { loadData } from '@/services/DataService';
 import { colorMap } from '@/services/colorMapping';
 import TransactionSimilarity from '@/components/TransactionSimilarity';
+import KMeans from '@/components/KMeans.vue';
 import { findTopSimilarSequences, findTopSimilarSequencesByAmount, findTopSimilarSequencesCombined } from '@/services/sequenceSimilarity';
 import TopSimilarList from '@/components/topSimilarList.vue';
 import AlgorithmProcess from '@/components/AlgorithmProcess.vue';
@@ -205,6 +212,7 @@ export default {
     ElTree,
     ElScrollbar,
     TransactionSimilarity,
+    KMeans,
     TopSimilarList,
     AlgorithmProcess,
     CategoryDistribution,
@@ -235,6 +243,15 @@ export default {
   methods: {
     toggleTransactionDetail() {
       this.showTransactionDetail = !this.showTransactionDetail;
+    },
+    openKMeansDrawer() {
+      this.$nextTick(() => {
+        if (this.$refs.kmeansComponent) {
+          this.$refs.kmeansComponent.openDrawer();
+        } else {
+          console.error("KMeans component is not loaded or ref is not set correctly.");
+        }
+      });
     },
     closeDetail() {
       this.showTransactionDetail = false;

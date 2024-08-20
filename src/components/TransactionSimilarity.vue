@@ -31,11 +31,9 @@
 import { ref, watch, nextTick } from 'vue';
 import { ElTabs, ElTabPane, ElButton, ElBacktop } from 'element-plus';
 import { findTopSimilarSequences, findTopSimilarSequencesByAmount, findTopSimilarSequencesCombined } from '@/services/sequenceSimilarity';
-// import { segmentWidths, widthSegments } from '@/services/sizeMapping';
 import YearView from './YearView.vue';
 import MonthView from './MonthView.vue';
 import '@/assets/global.css';
-// import TopSimilarList from './topSimilarList.vue';
 
 export default {
   name: 'TransactionSimilarity',

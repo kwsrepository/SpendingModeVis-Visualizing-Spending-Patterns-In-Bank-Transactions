@@ -15,19 +15,19 @@ import { computed } from 'vue';
 export default {
   name: 'AverageDay',
   props: {
-    data: {
+    parsedData: {
       type: Array,
-      required: true,
+      required: true
     },
   },
   setup(props) {
-    // console.log("data:", props.data);
+    // console.log("parsedData:", props.parsedData);
 
     // 按日期分组数据
     const groupedData = computed(() => {
       const groups = new Map();
-      props.data.forEach(transaction => {
-        const date = transaction["Transaction Date"];
+      props.parsedData.forEach(transaction => {
+        const date = transaction["date"];
         if (!groups.has(date)) {
           groups.set(date, []);
         }
@@ -52,26 +52,26 @@ export default {
       const totalTransactions = dailyMetrics.value.reduce((sum, day) => sum + day.transactionCount, 0);
       // console.log("number of transactions:", totalTransactions);
       // console.log("number of date have transaction:", dailyMetrics.value.length);
-      return (totalTransactions / dailyMetrics.value.length).toFixed(2);
+      return (totalTransactions / dailyMetrics.value.length).toFixed(4);
     });
 
     const averageSubCategories = computed(() => {
       const totalSubCategories = dailyMetrics.value.reduce((sum, day) => sum + day.subCategoryCount, 0);
-      return (totalSubCategories / dailyMetrics.value.length).toFixed(2);
+      return (totalSubCategories / dailyMetrics.value.length).toFixed(4);
     });
 
     const averageTransactionAmount = computed(() => {
-      const totalAmount = props.data.reduce((sum, transaction) => {
-        return sum + (transaction["Debit Amount"] || 0) + (transaction["Credit Amount"] || 0);
+      const totalAmount = props.parsedData.reduce((sum, transaction) => {
+        return sum + (transaction["debitAmount"] || 0) + (transaction["creditAmount"] || 0);
       }, 0);
-      return totalAmount / props.data.length;
+      return totalAmount / props.parsedData.length;
     });
 
     const averageDailyAmount = computed(() => {
       let totalDailyAmount = 0;
       groupedData.value.forEach(transactions => {
         const dailyTotal = transactions.reduce((sum, transaction) => {
-          return sum + (transaction["Debit Amount"] || 0) + (transaction["Credit Amount"] || 0);
+          return sum + (transaction["debitAmount"] || 0) + (transaction["creditAmount"] || 0);
         }, 0);
         totalDailyAmount += dailyTotal;
       });

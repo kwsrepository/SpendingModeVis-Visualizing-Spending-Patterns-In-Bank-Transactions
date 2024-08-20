@@ -5,7 +5,7 @@
 <script>
 import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
-import { colorMap } from '@/services/colorMapping'; // 引入colorMapping
+import { colorMap } from '@/services/colorMapping';
 
 export default {
   name: 'TimeDistribution',
@@ -33,8 +33,8 @@ export default {
   },
   methods: {
     drawScatterPlot() {
-      // console.log('parsedData', this.parsedData);
-      console.log('selectedCategories', this.selectedCategories);
+      console.log('parsedData', this.parsedData);
+      // console.log('selectedCategories', this.selectedCategories);
 
       const margin = { top: 70, right: 20, bottom: 70, left: 40 };
       const width = 500 - margin.left - margin.right;
@@ -129,7 +129,7 @@ export default {
         .attr("x", -margin.left)
         .attr("y", -15)
         .attr("font-size", "13px")
-        .text("Transaction Amount");
+        .text("Transaction Amount (unit: BGP)");
 
     },
     generateCustomTicks(dates) {

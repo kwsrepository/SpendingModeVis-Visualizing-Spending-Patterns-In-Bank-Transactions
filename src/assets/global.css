@@ -43,6 +43,7 @@ body {
     border-radius: 2px;
     pointer-events: none;
     font-size: 13px;
+    z-index: 10000;
 }
 
 .d3-tip:after {
@@ -197,6 +198,10 @@ svg {
 #algorithm-process, .mapping-legend, .average-info {
     fill: var(--text-color);
     color: var(--text-color);
+}
+
+.stroke-style {
+    stroke: var(--text-color);
 }
 
 .el-container, .el-anchor__list, .mapping-legend {

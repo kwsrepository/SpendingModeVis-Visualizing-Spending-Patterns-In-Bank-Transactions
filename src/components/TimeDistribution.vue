@@ -1,14 +1,40 @@
 <template>
+  <div style="display: flex; align-items: center; height: 30px;">
+    <p class="text-style" style="margin: 0 10px 0 0; font-size: 16px; line-height: 1.5;">Circle Size:</p>
+    <el-input-number
+      v-model="circleRadius"
+      :min="1"
+      :max="10"
+      aria-label="Circle Radius"
+      :step="0.5"
+      controls-position="right"
+      size="small"
+      style="width: 80px; line-height: 1.5;"
+    >
+    </el-input-number>
+  </div>
+
+  <el-radio-group v-model="selectedYAxisOption">
+    <el-radio value="normal">Normal</el-radio>
+    <el-radio value="winsorize">Decrease Outlier (Cap at 5000)</el-radio>
+    <el-radio value="logarithmic">Logarithmic</el-radio>
+  </el-radio-group>
   <div id="time-distribution-chart"></div>
 </template>
 
 <script>
+import { ElInputNumber, ElRadioGroup, ElRadio } from 'element-plus';
 import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
 import { colorMap } from '@/services/colorMapping';
 
 export default {
   name: 'TimeDistribution',
+  components: {
+    ElInputNumber,
+    ElRadioGroup,
+    ElRadio,
+  },
   props: {
     parsedData: {
       type: Array,
@@ -18,6 +44,12 @@ export default {
       type: Set,
       required: true
     }
+  },
+  data() {
+    return {
+      circleRadius: 3, // 默认的散点半径
+      selectedYAxisOption: 'winsorize', // 默认选项为 Winsorize
+    };
   },
   mounted() {
     this.drawScatterPlot();
@@ -29,22 +61,44 @@ export default {
         this.drawScatterPlot();
       },
       deep: true
+    },
+    circleRadius() {
+      d3.select("#time-distribution-chart").selectAll("*").remove();
+      this.drawScatterPlot();
+    },
+    selectedYAxisOption() {
+      d3.select("#time-distribution-chart").selectAll("*").remove();
+      this.drawScatterPlot();
     }
   },
   methods: {
     drawScatterPlot() {
-      console.log('parsedData', this.parsedData);
-      // console.log('selectedCategories', this.selectedCategories);
-
       const margin = { top: 70, right: 20, bottom: 70, left: 40 };
       const width = 500 - margin.left - margin.right;
-      const height = 550 - margin.top - margin.bottom;
+      const height = 530 - margin.top - margin.bottom;
 
-      const maxAmount = 5000;
-      const filteredData = this.parsedData.filter(d => {
-        const amount = d.debitAmount + d.creditAmount;
-        return amount <= maxAmount;
-      });
+      // 根据 y 轴选项处理金额数据
+      let maxAmount = 5000;
+      let filteredData;
+
+      if (this.selectedYAxisOption === 'winsorize') {
+        filteredData = this.parsedData.map(d => ({
+          ...d,
+          adjustedAmount: Math.min(d.debitAmount + d.creditAmount, 5000)
+        }));
+      } else if (this.selectedYAxisOption === 'logarithmic') {
+        filteredData = this.parsedData.map(d => ({
+          ...d,
+          adjustedAmount: Math.log10(d.debitAmount + d.creditAmount + 1) // 确保对数变换后非负
+        }));
+        maxAmount = d3.max(filteredData, d => d.adjustedAmount);
+      } else {
+        filteredData = this.parsedData.map(d => ({
+          ...d,
+          adjustedAmount: d.debitAmount + d.creditAmount
+        }));
+        maxAmount = d3.max(filteredData, d => d.adjustedAmount);
+      }
 
       const dates = filteredData.map(d => new Date(d.date));
       const customTicks = this.generateCustomTicks(dates);
@@ -76,7 +130,21 @@ export default {
         .range([height, 0]);
 
       svg.append("g")
-        .call(d3.axisLeft(y));
+        .call(d3.axisLeft(y)
+          .ticks(10)
+          .tickFormat(this.selectedYAxisOption === 'logarithmic'
+            ? d => Math.pow(10, d).toFixed(0)  // 对数轴刻度显示原始金额
+            : d => d)
+        );
+
+      // 手动添加 y 轴的最大值刻度
+      svg.append("g")
+        .attr("transform", `translate(0, ${y(maxAmount)})`)
+        .call(d3.axisLeft(y).tickValues([maxAmount])
+          .tickFormat(this.selectedYAxisOption === 'logarithmic'
+            ? d => Math.pow(10, d).toFixed(0)
+            : d => d)
+        );
 
       // 初始化 d3-tip
       const tip = d3Tip()
@@ -84,11 +152,11 @@ export default {
         .offset([-10, 0])
         .html(function(event, d) {
           return `
-            <strong>Date:</strong> <span>${d.date}</span><br>
-            <strong>Amount:</strong> <span>${(d.debitAmount + d.creditAmount).toFixed(2)}</span><br>
-            <strong>Category:</strong> <span>${d.category}</span><br>
-            <strong>SubCategory:</strong> <span>${d.subCategory}</span>
-          `;
+        <strong>Date:</strong> <span>${d.date}</span><br>
+        <strong>Amount:</strong> <span>${(d.debitAmount + d.creditAmount).toFixed(2)}</span><br>
+        <strong>Category:</strong> <span>${d.category}</span><br>
+        <strong>SubCategory:</strong> <span>${d.subCategory}</span>
+      `;
         });
 
       svg.call(tip);
@@ -98,8 +166,8 @@ export default {
         .enter()
         .append("circle")
         .attr("cx", d => x(new Date(d.date)))
-        .attr("cy", d => y(d.debitAmount + d.creditAmount))
-        .attr("r", 3)
+        .attr("cy", d => y(d.adjustedAmount))
+        .attr("r", this.circleRadius)
         .style("fill", d => colorMap[d.subCategory] || "transparent")
         .style("opacity", d => this.selectedCategories.has(d.subCategory) ? 1 : 0)
         .on('mouseover', tip.show)
@@ -111,16 +179,7 @@ export default {
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .style("font-weight", "bold")
-        .text("Time Distribution of Transactions (Amount ≤ 5000)");
-
-      // X 轴标题
-      // svg.append("text")
-      //   .attr("class", "x-axis-label")
-      //   .attr("text-anchor", "middle")
-      //   .attr("x", width / 2)
-      //   .attr("y", height + margin.bottom - 20)
-      //   .attr("font-size", "13px")
-      //   .text("Time");
+        .text("Time Distribution of Transactions");
 
       // Y 轴标题
       svg.append("text")
@@ -129,9 +188,9 @@ export default {
         .attr("x", -margin.left)
         .attr("y", -15)
         .attr("font-size", "13px")
-        .text("Transaction Amount (unit: BGP)");
-
+        .text(this.selectedYAxisOption === 'logarithmic' ? "Logarithmic Amount (unit: BGP)" : "Transaction Amount (unit: BGP)");
     },
+
     generateCustomTicks(dates) {
       const ticks = [];
       const startDate = d3.min(dates);

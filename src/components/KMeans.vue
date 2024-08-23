@@ -20,7 +20,14 @@
             class="custom-input"
           />
         </div>
-        <div id="scatter-plot"></div>
+        <div style="margin-top: 20px">
+          <el-radio-group v-model="selectedOption" @change="initializeDrawer">
+            <el-radio value="none">Normal</el-radio>
+            <el-radio value="winsorize">Decrease Outlier (Cap at 5000)</el-radio>
+            <el-radio value="logarithmic">Logarithmic</el-radio>
+          </el-radio-group>
+          <div id="scatter-plot"></div>
+        </div>
         <div id="bar-chart"></div>
         <div id="elbow-chart"></div>
       </div>
@@ -29,11 +36,10 @@
 </template>
 
 <script>
-import { ElDrawer, ElInputNumber } from 'element-plus';
+import { ElDrawer, ElInputNumber, ElRadioGroup, ElRadio } from 'element-plus';
 import { ref, defineComponent, watch, onMounted, nextTick } from 'vue';
-import { colorMap } from '@/services/colorMapping.js';
 import '@/assets/global.css';
-import { PCA } from 'ml-pca';
+// import { PCA } from 'ml-pca';
 import kmeans from 'ml-kmeans';
 import * as d3 from 'd3';
 import d3Tip from 'd3-tip';
@@ -43,6 +49,8 @@ export default defineComponent({
   components: {
     ElDrawer,
     ElInputNumber,
+    ElRadioGroup,
+    ElRadio,
   },
   props: {
     parsedData: {
@@ -57,6 +65,7 @@ export default defineComponent({
   setup(props) {
     const visible = ref(false);
     const num = ref(3); // 默认的数字输入值
+    const selectedOption = ref('logarithmic');
 
     const parseDateComponents = (dateString) => {
       const startDate = new Date("2015-07-27");
@@ -79,34 +88,35 @@ export default defineComponent({
 
       // 提取并处理数据
       const dates = props.parsedData.map(item => parseDateComponents(item.date));
-      const amounts = props.parsedData.map(item => item.debitAmount + item.creditAmount);
-      const subCategories = props.parsedData.map(item => item.subCategory);
+      let amounts = props.parsedData.map(item => item.debitAmount + item.creditAmount);
 
-      const amountsWinsorized = winsorize(amounts, 5000); // 对金额进行Winsorizing处理
+      // 保留原始金额数据
+      const tooltipAmounts = [...amounts];
+
+      // 根据用户选择处理金额数据
+      if (selectedOption.value === 'winsorize') {
+        amounts = winsorize(amounts, 5000); // 对金额进行Winsorizing处理
+      } else if (selectedOption.value === 'logarithmic') {
+        amounts = amounts.map(value => Math.log10(value + 1)); // 使用对数处理
+        // console.log('amounts', amounts);
+      }
+
+      // const amountsWinsorized = winsorize(amounts, 5000); // 对金额进行Winsorizing处理
 
       // 对相对天数和金额进行Min-Max标准化
       const datesScaled = minMaxScale(dates);
-      const amountsScaled = minMaxScale(amountsWinsorized);
-
-      // one-hot 编码subCategory
-      const uniqueSubCategories = [...new Set(subCategories)];
-      const subCategoryIndices = subCategories.map(subCategory => uniqueSubCategories.indexOf(subCategory));
-      const subCategoryEncoded = subCategoryIndices.map(index => {
-        const encoded = new Array(uniqueSubCategories.length).fill(0);
-        encoded[index] = 1;
-        return encoded;
-      });
+      const amountsScaled = minMaxScale(amounts);
 
       // 组合特征向量并输出到控制台
       const featureVectors = props.parsedData.map((item, index) => {
         return {
           originalDate: item.date,
           originalAmount: amounts[index],
-          originalSubCategory: item.subCategory,
+          // originalSubCategory: item.subCategory,
+          tooltipAmounts: tooltipAmounts[index],
           // Date: item.date,
           date: datesScaled[index],
           amount: amountsScaled[index],
-          subCategory: subCategoryEncoded[index]
         };
       });
 
@@ -115,40 +125,25 @@ export default defineComponent({
       // 将特征向量转换为适合聚类的格式
       const kMeansInput = featureVectors.map(vector => [
         vector.date,
-        ...vector.subCategory,
         vector.amount
       ]);
 
-      const pca = new PCA(kMeansInput);
-      const reducedData = pca.predict(kMeansInput, { nComponents: 2 });
-
       // 执行 k-means++ 聚类，使质心之间的距离尽可能较远
-      const kmeansResult = kmeans(reducedData.to2DArray(), num.value, { initialization: 'kmeans++' }); // 使用用户选择的簇数
+      const kmeansResult = kmeans(kMeansInput, num.value, { initialization: 'kmeans++' }); // 使用用户选择的簇数
 
       // 将聚类结果添加到 featureVectors 中
       const clusteredData = featureVectors.map((vector, index) => ({
         ...vector,
         cluster: kmeansResult.clusters[index],
-        pcaComponent1: reducedData.getRow(index)[0],
-        pcaComponent2: reducedData.getRow(index)[1]
       }));
 
       // console.log('Clustered Data:', clusteredData);
 
-      // 将降维结果添加到 clusteredData 中
-      const finalVisualData = clusteredData.map((item, index) => ({
-        ...item,
-        pcaComponent1: reducedData.getRow(index)[0],
-        pcaComponent2: reducedData.getRow(index)[1]
-      }));
-
-      // console.log('Final Visual Data:', finalVisualData);
-
       // 绘制聚类结果的散点图
-      drawScatterPlot(finalVisualData);
+      drawScatterPlot(clusteredData);
 
       // 绘制 subCategory 的柱状图
-      drawBarChart(finalVisualData, uniqueSubCategories);
+      // drawBarChart(clusteredData, uniqueSubCategories);
 
       // 肘部法 elbow method
       const calculateElbowData = (data, maxK = 10) => {
@@ -163,10 +158,6 @@ export default defineComponent({
               const distance = Math.sqrt(
                 point.reduce((distSum, coord, j) => distSum + Math.pow(coord - centroidArray[j], 2), 0)
               );
-
-              // console.log("Point:", point);
-              // console.log("Centroid:", centroidArray);
-
               return total + Math.pow(distance, 2);
             }, 0);
             return sum + distanceSum;
@@ -206,7 +197,7 @@ export default defineComponent({
     };
 
     const drawScatterPlot = (data) => {
-      const margin = { top: 50, right: 10, bottom: 40, left: 50 };
+      const margin = { top: 50, right: 10, bottom: 40, left: 65 };
       const width = 500 - margin.left - margin.right;
       const height = 400 - margin.top - margin.bottom;
 
@@ -219,12 +210,15 @@ export default defineComponent({
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-      const x = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.pcaComponent1))
+      // x 轴使用原始日期
+      const x = d3.scaleTime()
+        .domain(d3.extent(data, d => new Date(d.originalDate))) // 使用原始日期
         .range([0, width]);
 
+      // y 轴使用原始金额进行对数变换的显示
+      const maxYValue = d3.max(data, d => d.originalAmount);
       const y = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.pcaComponent2))
+        .domain([0, maxYValue]) // 使用原始金额
         .range([height, 0]);
 
       // 添加 x 轴
@@ -232,25 +226,30 @@ export default defineComponent({
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).ticks(10).tickSizeOuter(0));
 
-      // 添加 y 轴
+      // 添加 y 轴，并自定义刻度标签，同时增加最大值刻度
       svg.append("g")
-        .call(d3.axisLeft(y).ticks(10).tickSizeOuter(0));
+        .call(d3.axisLeft(y)
+          .ticks(10)
+          .tickSizeOuter(0)
+          .tickValues([...y.ticks(10), maxYValue]) // 添加最大值刻度
+          .tickFormat(selectedOption.value === 'logarithmic'
+            ? d => (Math.pow(10, d) > 1 ? Math.pow(10, d).toFixed(0) : Math.pow(10, d).toPrecision(1)) // 显示对数前的原始金额
+            : d => d)); // 其他模式，正常显示金额
 
       const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-      // 定义并初始化 d3-tip
+      // 定义并初始化 tooltip
       const tip = d3Tip()
         .attr('class', 'd3-tip')
         .offset([-10, 0])
         .html(function(event, d) {
           return `<strong>Date:</strong> ${d.originalDate}<br>
-              <strong>SubCategory:</strong> ${d.originalSubCategory}<br>
-              <strong>Amount:</strong> ${d.originalAmount}`;
+              <strong>Amount:</strong> ${d.tooltipAmounts}`;
         });
 
       svg.call(tip);
 
-      const symbol = d3.symbol().type(d3.symbolCross).size(5); // 设置符号为cross
+      const symbol = d3.symbol().type(d3.symbolCross).size(25); // 设置符号为cross
 
       svg.append('g')
         .selectAll("path")
@@ -258,9 +257,9 @@ export default defineComponent({
         .enter()
         .append("path")
         .attr("d", symbol) // 使用生成的cross符号
-        .attr("transform", d => `translate(${x(d.pcaComponent1)}, ${y(d.pcaComponent2)})`) // 定位交叉符号
+        .attr("transform", d => `translate(${x(new Date(d.originalDate))}, ${y(d.originalAmount)})`) // 定位交叉符号
         .style("fill", d => color(d.cluster))
-        .style("opacity", 0.3)
+        .style("opacity", 0.6)
         .on('mouseover', tip.show)
         .on('mouseout', tip.hide);
 
@@ -278,119 +277,138 @@ export default defineComponent({
         .attr("width", width)
         .attr("height", height)
         .attr("fill", "none")
-        // .attr("stroke", "black")
         .attr("stroke-width", 1);
-    };
 
-
-    const drawBarChart = (data, uniqueSubCategories) => {
-      d3.select("#bar-chart").selectAll("*").remove();
-
-      const margin = { top: 90, right: 10, bottom: 40, left: 50 };
-      const width = 500 - margin.left - margin.right;
-      const height = 300 - margin.top - margin.bottom;
-
-      const svg = d3.select("#bar-chart")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-      const clusterGroups = d3.group(data, d => d.cluster);
-
-      const clusterCounts = Array.from(clusterGroups, ([cluster, points]) => {
-        const subCategoryCounts = points.reduce((acc, point) => {
-          const subCategory = point.originalSubCategory;
-          acc[subCategory] = (acc[subCategory] || 0) + 1;
-          return acc;
-        }, {});
-        return { cluster, subCategoryCounts };
-      });
-
-      const x0 = d3.scaleBand()
-        .domain(clusterCounts.map(d => d.cluster))
-        .range([0, width])
-        .paddingInner(0.1);
-
-      const x1 = d3.scaleBand()
-        .domain(uniqueSubCategories)
-        .range([0, x0.bandwidth()])
-        .padding(0.05);
-
-      const y = d3.scaleLinear()
-        .domain([0, d3.max(clusterCounts, d => d3.max(uniqueSubCategories, key => d.subCategoryCounts[key] || 0))])
-        .range([height, 0]);
-
-      const color = d => colorMap[d] || '#ffffff';
-
-      const tip = d3Tip()
-        .attr('class', 'd3-tip')
-        .offset([-10, 0])
-        .html(function(event, d) {
-          return `<strong>SubCategory:</strong> ${d.key}<br><strong>Count:</strong> ${d.value}`;
-        });
-
-      svg.call(tip);
-
-      svg.append("g")
-        .selectAll("g")
-        .data(clusterCounts)
-        .enter()
-        .append("g")
-        .attr("transform", d => `translate(${x0(d.cluster)},0)`)
-        .selectAll("rect")
-        .data(d => uniqueSubCategories.map(key => ({ key, value: d.subCategoryCounts[key] || 0 })))
-        .enter()
-        .append("rect")
-        .attr("x", d => x1(d.key))
-        .attr("y", d => y(d.value))
-        .attr("width", x1.bandwidth())
-        .attr("height", d => height - y(d.value))
-        .attr("fill", d => color(d.key))
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide);
-
-      svg.append("g")
-        .attr("class", "axis")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x0).tickSize(0));
-
-      svg.append("g")
-        .attr("class", "axis")
-        .call(d3.axisLeft(y));
-
+      // X 轴标题
       svg.append("text")
         .attr("class", "text-style")
-        .attr("x", width / 2)
-        .attr("y", -margin.top / 2 + 20)
         .attr("text-anchor", "middle")
-        .style("font-size", "16px")
-        .text("Clustered SubCategory Distribution");
-
-      svg.append("text")
-        .attr("class", "text-style")
         .attr("x", width / 2)
-        .attr("y", height + margin.bottom - 10)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .text("Cluster");
+        .attr("y", height + margin.bottom)
+        .attr("font-size", "12px")
+        .text("Time");
 
+      // Y 轴标题
       svg.append("text")
         .attr("class", "text-style")
         .attr("transform", "rotate(-90)")
+        .attr("text-anchor", "middle")
         .attr("x", -height / 2)
         .attr("y", -margin.left + 10)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .text("SubCategory Count");
+        .attr("font-size", "12px")
+        .text("Transaction Amount (unit: BGP)");
+
     };
 
 
+    // const drawBarChart = (data, uniqueSubCategories) => {
+    //   d3.select("#bar-chart").selectAll("*").remove();
+    //
+    //   const margin = { top: 90, right: 10, bottom: 40, left: 50 };
+    //   const width = 500 - margin.left - margin.right;
+    //   const height = 300 - margin.top - margin.bottom;
+    //
+    //   const svg = d3.select("#bar-chart")
+    //     .append("svg")
+    //     .attr("width", width + margin.left + margin.right)
+    //     .attr("height", height + margin.top + margin.bottom)
+    //     .append("g")
+    //     .attr("transform", `translate(${margin.left},${margin.top})`);
+    //
+    //   const clusterGroups = d3.group(data, d => d.cluster);
+    //
+    //   const clusterCounts = Array.from(clusterGroups, ([cluster, points]) => {
+    //     const subCategoryCounts = points.reduce((acc, point) => {
+    //       const subCategory = point.originalSubCategory;
+    //       acc[subCategory] = (acc[subCategory] || 0) + 1;
+    //       return acc;
+    //     }, {});
+    //     return { cluster, subCategoryCounts };
+    //   });
+    //
+    //   const x0 = d3.scaleBand()
+    //     .domain(clusterCounts.map(d => d.cluster))
+    //     .range([0, width])
+    //     .paddingInner(0.1);
+    //
+    //   const x1 = d3.scaleBand()
+    //     .domain(uniqueSubCategories)
+    //     .range([0, x0.bandwidth()])
+    //     .padding(0.05);
+    //
+    //   const y = d3.scaleLinear()
+    //     .domain([0, d3.max(clusterCounts, d => d3.max(uniqueSubCategories, key => d.subCategoryCounts[key] || 0))])
+    //     .range([height, 0]);
+    //
+    //   const color = d => colorMap[d] || '#ffffff';
+    //
+    //   const tip = d3Tip()
+    //     .attr('class', 'd3-tip')
+    //     .offset([-10, 0])
+    //     .html(function(event, d) {
+    //       return `<strong>SubCategory:</strong> ${d.key}<br><strong>Count:</strong> ${d.value}`;
+    //     });
+    //
+    //   svg.call(tip);
+    //
+    //   svg.append("g")
+    //     .selectAll("g")
+    //     .data(clusterCounts)
+    //     .enter()
+    //     .append("g")
+    //     .attr("transform", d => `translate(${x0(d.cluster)},0)`)
+    //     .selectAll("rect")
+    //     .data(d => uniqueSubCategories.map(key => ({ key, value: d.subCategoryCounts[key] || 0 })))
+    //     .enter()
+    //     .append("rect")
+    //     .attr("x", d => x1(d.key))
+    //     .attr("y", d => y(d.value))
+    //     .attr("width", x1.bandwidth())
+    //     .attr("height", d => height - y(d.value))
+    //     .attr("fill", d => color(d.key))
+    //     .on('mouseover', tip.show)
+    //     .on('mouseout', tip.hide);
+    //
+    //   svg.append("g")
+    //     .attr("class", "axis")
+    //     .attr("transform", `translate(0,${height})`)
+    //     .call(d3.axisBottom(x0).tickSize(0));
+    //
+    //   svg.append("g")
+    //     .attr("class", "axis")
+    //     .call(d3.axisLeft(y));
+    //
+    //   svg.append("text")
+    //     .attr("class", "text-style")
+    //     .attr("x", width / 2)
+    //     .attr("y", -margin.top / 2 + 20)
+    //     .attr("text-anchor", "middle")
+    //     .style("font-size", "16px")
+    //     .text("Clustered SubCategory Distribution");
+    //
+    //   svg.append("text")
+    //     .attr("class", "text-style")
+    //     .attr("x", width / 2)
+    //     .attr("y", height + margin.bottom - 10)
+    //     .attr("text-anchor", "middle")
+    //     .style("font-size", "12px")
+    //     .text("Cluster");
+    //
+    //   svg.append("text")
+    //     .attr("class", "text-style")
+    //     .attr("transform", "rotate(-90)")
+    //     .attr("x", -height / 2)
+    //     .attr("y", -margin.left + 10)
+    //     .attr("text-anchor", "middle")
+    //     .style("font-size", "12px")
+    //     .text("SubCategory Count");
+    // };
+
+
     const drawElbowChart = (elbowData) => {
-      const margin = { top: 90, right: 10, bottom: 40, left: 50 };
-      const width = 400 - margin.left - margin.right;
-      const height = 300 - margin.top - margin.bottom;
+      const margin = { top: 70, right: 10, bottom: 40, left: 65 };
+      const width = 500 - margin.left - margin.right;
+      const height = 330 - margin.top - margin.bottom;
 
       d3.select("#elbow-chart").selectAll("*").remove();
 
@@ -465,7 +483,7 @@ export default defineComponent({
       svg.append("text")
         .attr("class", "text-style")
         .attr("x", width / 2)
-        .attr("y", -25)
+        .attr("y", -20)
         .attr("text-anchor", "middle")
         .style("font-size", "16px")
         .text("Elbow Method for Optimal K");
@@ -493,6 +511,8 @@ export default defineComponent({
       num,
       openDrawer,
       closeDrawer,
+      selectedOption,
+      initializeDrawer,
     };
   }
 });

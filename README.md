@@ -7,8 +7,7 @@ In this research, based on MoneyVis, the first publicly available dataset of per
 https://youtu.be/si2M6ReG4Ec?si=yD68oCBpm0b5y03C
 
 ### System diagram
-
-
+![image](https://github.com/user-attachments/assets/7c95fbd7-cb6f-4ec2-803e-cb191f3495d5)
 
 ### Screen shot
 

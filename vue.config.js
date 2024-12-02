@@ -4,6 +4,5 @@
 // })
 
 module.exports = {
-  publicPath: '/final_paper/',
   transpileDependencies: []
 }

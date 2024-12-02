@@ -1,24 +1,14 @@
-# my-vue3-app
+# my master degree final work (With Distinction)
 
-## Project setup
-```
-npm install
-```
+## Project introduction
+In this research, based on MoneyVis, the first publicly available dataset of personal banking transactions, a web visualization system is developed with the aim of exploring and revealing consumers' consumption behaviours and their cyclical patterns. The system helps users identify and understand the similarities and trends of consumption patterns through the coordinated presentation of event sequence diagrams and similar sequence lists, combined with various visualization techniques and K-means++ clustering algorithm. Compared with traditional tools, this system demonstrates significant advantages in processing and displaying consumption patterns of individual consumers, especially in visualizing multiple types of data and calculating similarity between sequences, which is uniquely innovative. 
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+### Presentation video
+https://youtu.be/si2M6ReG4Ec?si=yD68oCBpm0b5y03C
 
-### Compiles and minifies for production
-```
-npm run build
-```
+### System diagram
 
-### Lints and fixes files
-```
-npm run lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### Screen shot
+

@@ -28,7 +28,6 @@ import { ElContainer } from 'element-plus'
 // , ElHeader, ElMain, ElAside
 
 export default {
-  name: 'App',
   components: {
     ElContainer,
     // ElAside,

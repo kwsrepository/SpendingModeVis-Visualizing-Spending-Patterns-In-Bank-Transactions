@@ -11,10 +11,11 @@ https://youtu.be/si2M6ReG4Ec?si=yD68oCBpm0b5y03C
 
 ## Screenshots
 ### Whole Page Design
-Dark mode:
+#### Dark mode:
 ![image](https://github.com/user-attachments/assets/9bac3876-9593-4ac1-af69-fa70068f1891)
 
-Light mode:
+#### Light mode:
+
 ![image](https://github.com/user-attachments/assets/929dd3f4-a402-41d8-bd8d-7c8df8f7b7f8)
 
 
@@ -29,17 +30,18 @@ Light mode:
 ### Similar Sequence View
 ![image](https://github.com/user-attachments/assets/0d5e3073-c207-47fc-83b2-7ec78ff01ade)
 
-(System provide multiple choose to decide which mode you want to apply:)
+#### (System provide multiple choose to decide which mode you want to apply:)
 ![image](https://github.com/user-attachments/assets/c3d70455-a3bb-4d2e-b44b-2e893ded49d1)
 
-(Some good result:)
+#### (Some good result:)
 ![image](https://github.com/user-attachments/assets/ae49d70e-97d3-4172-849d-dbdb8ca66e40)
 ![image](https://github.com/user-attachments/assets/c1990e33-371c-4db6-986d-6a6be8a5b061)
 
 ### Calendar View
 ![image](https://github.com/user-attachments/assets/1eebccd5-5608-45bb-b1c1-b5312cc540a0)
 
-(System will highlight the top 10 most similar dates of the day that user choosed:)
+#### (System will highlight the top 10 most similar dates of the day that user choosed:)
+
 ![image](https://github.com/user-attachments/assets/6afdfd02-19cd-4de4-875b-d6575b9f278e)
 
 ### Cluster View
